@@ -18,7 +18,7 @@ import org.renxo.deeplinkapplication.screens.SplashScreen
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
-    startDestination: NavRouts
+    startDestination: NavRouts,
 ) {
     NavHost(
         modifier = Modifier
@@ -29,7 +29,6 @@ fun AppNavGraph(
 
         navController = navController,
         startDestination = startDestination,
-
         ) {
 
         composable<AppRoutes.Splash> {

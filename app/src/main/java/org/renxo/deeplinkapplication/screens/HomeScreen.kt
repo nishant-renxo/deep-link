@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun HomeScreen(productId:String) {
+fun HomeScreen(productId: String) {
     Box(
         Modifier
             .fillMaxSize()

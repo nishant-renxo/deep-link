@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Deep Link Application"
+rootProject.name = "Deep Link"
 include(":app")
  

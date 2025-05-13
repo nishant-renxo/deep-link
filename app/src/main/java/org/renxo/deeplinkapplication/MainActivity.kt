@@ -3,6 +3,7 @@ package org.renxo.deeplinkapplication
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -46,7 +47,6 @@ class MainActivity : ComponentActivity() {
 }
 
 
-// Step 4: Define the Navigation Component
 @Composable
 fun AppNavigation(intent: Intent) {
     val navController = rememberNavController()
@@ -59,9 +59,10 @@ fun AppNavigation(intent: Intent) {
 
 }
 
-// Step 5: Deep link processor
+// Deep link processor
 private fun processDeepLink(uri: Uri): NavRouts {
     val path = uri.path
+    Log.e("processDeepLink", ": $uri")
     if (path?.startsWith("/product/") == true) {
         val productId = path.removePrefix("/product/")
         return AppRoutes.HomeScreen(productId)
