@@ -1,0 +1,8 @@
+[{
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.renxo.deeplinkapplication",
+      "sha256_cert_fingerprints": ["F8:B7:E8:87:2C:66:DB:01:C0:EE:81:21:46:84:7A:57:02:92:57:9C:3B:33:E9:95:49:99:6B:65:D5:73:29:10"]
+    }
+  }]
