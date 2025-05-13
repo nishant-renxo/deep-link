@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+
 }
 
 android {
@@ -9,7 +11,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.instagram.android"
+        applicationId = "org.renxo.deeplinkapplication"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -63,4 +65,7 @@ dependencies {
     implementation(libs.installreferrer)
     implementation (libs.app.update)
     implementation (libs.app.update.ktx)
+
+    implementation(libs.kotlinx.serialization.json)
+
 }

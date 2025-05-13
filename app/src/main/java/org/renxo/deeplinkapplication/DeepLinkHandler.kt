@@ -3,6 +3,7 @@ package org.renxo.deeplinkapplication
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import com.android.installreferrer.api.InstallReferrerClient
 import com.android.installreferrer.api.InstallReferrerStateListener
 import androidx.core.net.toUri
@@ -45,7 +46,7 @@ class DeepLinkHandler(private val context: Context) {
                     val deepLink = Uri.decode(deepLinkRaw)
 
                     // Launch the app with the deep link
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(deepLink))
+                    val intent = Intent(Intent.ACTION_VIEW, deepLink.toUri())
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     context.startActivity(intent)
                 }
@@ -63,12 +64,17 @@ class DeepLinkHandler(private val context: Context) {
 // Step 9: Create URLs for your app that work with or without the app installed
 // This is an example function that generates a URL that works for both web and deep linking
 fun createDeepLinkUrl(productId: String): String {
-    return "https://ronildeveloper.in/p/$productId"
+    return "https://ronil-renxo.github.io/product/$productId".also {
+        Log.e("createDeepLinkUrl", ":$it ", )
+    }
 }
 
 // Step 10: Add this function to generate Play Store URI with deep link parameter
 fun getPlayStoreUri(context: Context, deepLink: String): Uri {
     val packageName = context.packageName
     val encodedDeepLink = Uri.encode(deepLink)
-    return "https://play.google.com/store/apps/details?id=$packageName&referrer=deep_link=$encodedDeepLink".toUri()
+    return "https://play.google.com/store/apps/details?id=$packageName&referrer=deep_link=$encodedDeepLink".toUri().also {
+        Log.e("getPlayStoreUri", ":$it ", )
+
+    }
 }
