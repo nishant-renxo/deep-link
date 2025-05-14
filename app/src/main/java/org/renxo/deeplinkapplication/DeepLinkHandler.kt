@@ -64,7 +64,7 @@ class DeepLinkHandler(private val context: Context) {
 // Step 9: Create URLs for your app that work with or without the app installed
 // This is an example function that generates a URL that works for both web and deep linking
 fun createDeepLinkUrl(productId: String): String {
-    return "https://ronil-renxo.github.io/product/$productId".also {
+    return "https://ronil-renxo.github.io/deep-link?product=$productId".also {
         Log.e("createDeepLinkUrl", ":$it ", )
     }
 }

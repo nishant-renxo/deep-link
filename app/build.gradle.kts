@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.dagger.hilt)
+    id("kotlin-kapt")
 
 }
 
@@ -22,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -63,9 +65,31 @@ dependencies {
     implementation(libs.navigation.compose)
 
     implementation(libs.installreferrer)
-    implementation (libs.app.update)
-    implementation (libs.app.update.ktx)
+    implementation(libs.app.update)
+    implementation(libs.app.update.ktx)
 
     implementation(libs.kotlinx.serialization.json)
+
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.compose)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.accompanist.permissions)
+
+    implementation(libs.barcode.scanning)//BarCode
+
+
+    implementation(libs.ktor.client.logging)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.okhttp)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.simple)
+
 
 }

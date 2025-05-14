@@ -37,13 +37,13 @@ fun AppNavGraph(
         composable<AppRoutes.HomeScreen>(
             deepLinks = listOf(
                 navDeepLink {
-                    uriPattern = "https://ronil-renxo.github.io/product/{productId}"
+                    uriPattern = "https://ronil-renxo.github.io/deep-link?product={productId}"
                 },
                 navDeepLink {
-                    uriPattern = "http://ronil-renxo.github.io/product/{productId}"
+                    uriPattern = "http://ronil-renxo.github.io/deep-link?product={productId}"
                 },
                 navDeepLink {
-                    uriPattern = "ronil-renxo.github.io://product/{productId}"
+                    uriPattern = "ronil-renxo.github.io://deep-link?product={productId}"
                 }
             )
         ) { backStackEntry ->
