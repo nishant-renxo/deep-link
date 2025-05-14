@@ -5,32 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Open App</title>
   <script>
-    function openApp() {
-      const path = window.location.pathname; // e.g., /product/92
-      const appLink = "https://ronil-renxo.github.io" + path;
-      // const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";
-   // const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink&referrer=deep_link=https%3A%2F%2Fronil-renxo.github.io%2Fdeep-link?product%2F92";
- const playStoreUrl = `https://play.google.com/store/apps/details?id=com.Renxo.DeepLink&referrer=deep_link%3Dhttps%253A%252F%252Fronil-renxo.github.io%252Fdeep-link%252Fproduct%252F525`;
-
-
-
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-      const isAndroid = /android/i.test(userAgent);
-
-      // Try to open the app
-      if (isAndroid) {
-        window.location.href = playStoreUrl;
-
-        // If it fails, fallback
-        setTimeout(function () {
-          window.location.href = playStoreUrl;
-        }, 1500);
-      } else {
-        // Desktop fallback or iOS
-        window.location.href = playStoreUrl;
-      }
+    function createDeepLinkUrl(productId) {
+        const url = `https://ronil-renxo.github.io/deep-link?product=${productId}`;
+        console.log("createDeepLinkUrl:", url);
+        return url;
     }
-  </script>
+
+    function getPlayStoreUri(packageName, deepLink) {
+        const encodedDeepLink = encodeURIComponent(deepLink);
+        const playStoreUrl = `https://play.google.com/store/apps/details?id=${packageName}&referrer=deep_link%3D${encodedDeepLink}`;
+        console.log("getPlayStoreUri:", playStoreUrl);
+        return playStoreUrl;
+    }
+
+    function openApp() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get("product");
+        const packageName = "com.Renxo.DeepLink";
+
+        if (!productId) {
+            console.error("No product ID found in URL.");
+            return;
+        }
+
+        const deepLink = createDeepLinkUrl(productId);
+        const playStoreUrl = getPlayStoreUri(packageName, deepLink);
+
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        const isAndroid = /android/i.test(userAgent);
+
+        if (isAndroid) {
+            window.location.href = playStoreUrl;
+                console.log("App not opened, redirecting to Play Store...");
+        } else {
+            console.log("Not Android, redirecting to Play Store...");
+            // window.location.href = playStoreUrl;
+        }
+    }
+</script>
+
 </head>
 <body onload="openApp()">
   <h1>Redirecting to App...</h1>
