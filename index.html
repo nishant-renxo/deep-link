@@ -6,31 +6,24 @@
   <title>Open App</title>
   <script>
     function openApp() {
-      const params = new URLSearchParams(window.location.search);
-      const productId = params.get('product'); // Get '25' from ?product=25
-
-      const deepLink = `gatch://product/${productId}`;
-      const fallbackPlayStore = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";// com.narendramodiapp
-
-      const firebaseDynamicLink = "https://renxo.page.link/?" +
-        "link=" + encodeURIComponent("https://ronil-renxo.github.io/deep-link?product=" + productId) +
-        "&apn=com.Renxo.DeepLink" +
-        "&afl=" + encodeURIComponent(fallbackPlayStore); // fallback
+      const path = window.location.pathname; // e.g., /product/92
+      const appLink = "https://ronil-renxo.github.io" + path;
+      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";
 
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /android/i.test(userAgent);
 
-      if (productId && isAndroid) {
-        // Try deep link first
-        window.location.href = deepLink;
+      // Try to open the app
+      if (isAndroid) {
+        window.location.href = appLink;
 
-        // If app not installed, fallback
-        setTimeout(() => {
-          window.location.href = firebaseDynamicLink;
+        // If it fails, fallback
+        setTimeout(function () {
+          window.location.href = playStoreUrl;
         }, 1500);
       } else {
-        // Fallback for other platforms or errors
-        window.location.href = fallbackPlayStore;
+        // Desktop fallback or iOS
+        window.location.href = playStoreUrl;
       }
     }
   </script>
