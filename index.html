@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Open App</title>
+  <script>
+    function openApp() {
+      const path = window.location.pathname; // e.g., /product/92
+      const appLink = "https://ronil-renxo.github.io" + path;
+      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";
+
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isAndroid = /android/i.test(userAgent);
+
+      // Try to open the app
+      if (isAndroid) {
+        window.location.href = appLink;
+
+        // If it fails, fallback
+        setTimeout(function () {
+          window.location.href = playStoreUrl;
+        }, 1500);
+      } else {
+        // Desktop fallback or iOS
+        window.location.href = playStoreUrl;
+      }
+    }
+  </script>
+</head>
+<body onload="openApp()">
+  <h1>Redirecting to App...</h1>
+</body>
+</html>
