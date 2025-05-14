@@ -8,7 +8,11 @@
     function openApp() {
       const path = window.location.pathname; // e.g., /product/92
       const appLink = "https://ronil-renxo.github.io" + path;
-      const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";
+      // const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink";
+   // const playStoreUrl = "https://play.google.com/store/apps/details?id=com.Renxo.DeepLink&referrer=deep_link=https%3A%2F%2Fronil-renxo.github.io%2Fdeep-link?product%2F92";
+ const playStoreUrl = `https://play.google.com/store/apps/details?id=com.Renxo.DeepLink&referrer=deep_link%3Dhttps%253A%252F%252Fronil-renxo.github.io%252Fdeep-link%252Fproduct%252F525`;
+
+
 
       const userAgent = navigator.userAgent || navigator.vendor || window.opera;
       const isAndroid = /android/i.test(userAgent);
