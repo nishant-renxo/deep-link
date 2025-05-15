@@ -11,27 +11,27 @@ import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.networking.ApiRepository
 import org.renxo.deeplinkapplication.networking.DetailModel
 import org.renxo.deeplinkapplication.networking.DetailResponse
+import org.renxo.deeplinkapplication.networking.FieldsModel
 import org.renxo.deeplinkapplication.networking.NetworkCallback
 import javax.inject.Inject
-
-const val authUrl = "http://192.168.31.43:8090/"
 
 
 @HiltViewModel
 class DeepLinkVM @Inject constructor(private val repository: ApiRepository) : BaseViewModel() {
-    var scannedValue by mutableStateOf("")
+    var fieldsModel: FieldsModel? by mutableStateOf(null)
+        private set
+    var errorValue by mutableStateOf("")
     var color by mutableStateOf(Color.Black)
         private set
 
     private val detailCall by lazy { CallingHelper<DetailResponse?>() }
     fun getDetail(id: Int) {
-        Log.e("getDetail", ": $id", )
         detailCall.launchCall(
             {
                 repository.getDetail(
                     DetailModel(
                         id.toString()
-                    ), authUrl
+                    )
                 )
             },
             object : NetworkCallback<DetailResponse?> {
@@ -59,12 +59,13 @@ class DeepLinkVM @Inject constructor(private val repository: ApiRepository) : Ba
 
                 override fun onSuccess(result: DetailResponse?) {
 
-                    result?.text?.let {
+                    result?.fields?.let {
                         color = Color.Black
-                        scannedValue = "Hello ${it}, How you doing"
+                        fieldsModel = it
+                        Log.e("onSuccess", ": $fieldsModel")
                     } ?: run {
                         color = Color.Red
-                        scannedValue = "Something went wrong may be the Id was wrong"
+                        errorValue = "Something went wrong may be the Id was wrong"
                     }
                 }
 

@@ -48,7 +48,7 @@ class ImageAnalyzer(private val callback: (String)->Unit) : ImageAnalysis.Analyz
                             /*val json = JSONObject(it)
                             if (json.has("qr_code_type")) {
                                 if (json.get("qr_code_type") == "my_v_safety") {
-                                    if (json.has("id") && !isAnalyzeCompleted) {
+                                    if (json.has("contact_id") && !isAnalyzeCompleted) {
 
                                     }
                                 }

@@ -6,12 +6,21 @@ import kotlinx.serialization.Serializable
 interface NavRouts
 
 sealed class AppRoutes {
+    @Serializable
+    data object SplashPage : NavRouts
 
     @Serializable
-    data object Splash : NavRouts
+    data object ScanningPage : NavRouts
 
     @Serializable
-    data class HomeScreen(val productId:String) : NavRouts
+    data object RegisterPage : NavRouts
+    @Serializable
+    data object SelectionPage : NavRouts
+    @Serializable
+    data object WebViewPage : NavRouts
+
+    @Serializable
+    data class DeepLinkPage(val productId: String) : NavRouts
 
 
 }
