@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,7 +19,7 @@ import androidx.compose.ui.unit.dp
 fun SelectionScreen(
     onScanClick: () -> Unit,
     onRegisterClick: () -> Unit,
-    onOpenWebView: () -> Unit
+//    onOpenWebView: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -50,19 +51,11 @@ fun SelectionScreen(
         ) {
             Text("Register")
         }
-        Button(
-            onClick = onOpenWebView,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            Text("Open WebView")
-        }
     }
 }
 
-@Preview(showBackground = true,showSystemUi = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 private fun MyPreview() {
-    SelectionScreen({},{},{})
+    SelectionScreen({}, {})
 }

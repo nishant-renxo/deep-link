@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -20,46 +19,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import org.renxo.deeplinkapplication.networking.FieldsModel
 import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
-import org.renxo.deeplinkapplication.viewmodels.DeepLinkVM
 
 @Composable
-fun DeepLinkScreen(productId: String, viewmodel: DeepLinkVM = hiltViewModel(), finish: () -> Unit) {
+fun DeepLinkScreen(
+    id: String,
+    navigate: (String) -> Unit,
+    finish: () -> Unit,
+) {
     BackHandler {
         finish()
+    }
+    GetOneTimeBlock {
+        navigate(id)
     }
     Box(
         Modifier
             .fillMaxSize()
             .background(Color.White), contentAlignment = Alignment.Center
     ) {
-        viewmodel.fieldsModel?.let {
-            FieldsInfoCard(it)
-        }?:run {
-            if (viewmodel.errorValue.isNotEmpty()) {
-                Text(
-                    viewmodel.errorValue,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(10.dp),
-                    fontWeight = FontWeight.Bold,
-                    color = viewmodel.color,
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                CircularProgressIndicator()
-            }
-        }
+        CircularProgressIndicator()
     }
-    GetOneTimeBlock {
-        productId.toIntOrNull()?.let {
-            viewmodel.getDetail(it)
-        }
-    }
+
 }
 
 

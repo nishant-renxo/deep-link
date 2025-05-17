@@ -1,6 +1,5 @@
 package org.renxo.deeplinkapplication.networking
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
@@ -18,53 +17,22 @@ import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Parameters
 import io.ktor.http.contentType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
-class ApiHelper(val client: HttpClient) {
-    val baseUrl = "http://url/api/"
+
+class ApiHelper( val client: HttpClient,  val baseUrl: String = "http://url/api/") {
+
     suspend inline fun <reified T> getRequest(
         endPoint: String,
         authToken: String? = null,
         params: List<KeyValue> = emptyList(),
     ): Result<T> {
-        val res = fetchGetResponse(endPoint, params, authToken) {
-            return Result.failure(
-                ApiException(
-                    0,
-                    it
-                )
-
-            )
-        }
-
-        return if (res?.status?.value == 200) {
-            Result.success(
-                res.body<T>()
-            )
-        } else {
-            Result.failure(
-                ApiException(
-                    res?.status?.value ?: 0,
-                    res?.status?.description ?: ""
-                )
-
-            )
-        }
-
-    }
-
-    suspend inline fun fetchGetResponse(
-        endPoint: String,
-        params: List<KeyValue> = emptyList(),
-        authToken: String? = null,
-        errorCase: (String) -> Unit
-
-    ): HttpResponse? {
-
-        val res = try {
-            client.get(
-                urlString = baseUrl + endPoint
-            ) {
-
+        return try {
+            val response = client.get(urlString = baseUrl + endPoint) {
                 params.forEach {
                     parameter(it.key, it.value)
                 }
@@ -75,13 +43,24 @@ class ApiHelper(val client: HttpClient) {
                     }
                 }
             }
-        } catch (e: Exception) {
-            errorCase(e.message.toString())
-            null
-        }
-        return res
-    }
 
+            if (response.status.value == 200) {
+                Result.success(response.body())
+            } else {
+                Result.failure(
+                    ApiException(
+                        response.status.value,
+                        response.status.description
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            // Re-throw cancellation exceptions to properly support coroutine cancellation
+            throw e
+        } catch (e: Exception) {
+            Result.failure(ApiException(0, e.message ?: "Unknown error"))
+        }
+    }
 
     suspend inline fun <reified T, reified K> postRequest(
         endPoint: String,
@@ -89,99 +68,72 @@ class ApiHelper(val client: HttpClient) {
         params: List<KeyValue> = emptyList(),
         formData: List<MultiPartObj> = emptyList(),
         body: K? = null,
+    ): Result<T> {
+        return try {
+            val fullUrl = if (endPoint.startsWith("http")) endPoint else baseUrl + endPoint
 
-        ): Result<T> {
-        val res = fetchPostResponse(endPoint, authToken, params, formData, body) {
-            return Result.failure(
-                ApiException(
-                    0,
-                    it
-                )
-
-            )
-        }
-        return if (res?.status?.value == 200) {
-            Result.success(
-                res.body<T>()
-            )
-        } else {
-            Result.failure(
-                ApiException(
-                    res?.status?.value ?: 0,
-                    res?.status?.description ?: ""
-                )
-
-            )
-        }
-
-    }
-
-
-    suspend inline fun <reified K> fetchPostResponse(
-        endPoint: String,
-        authToken: String? = null,
-        params: List<KeyValue> = emptyList(),
-        formData: List<MultiPartObj> = emptyList(),
-        body: K? = null,
-        errorCase: (String) -> Unit
-    ): HttpResponse? {
-        Log.e("fetchPostResponse", ": $endPoint  $params")
-
-        val res = try {
-            client.post(
-//                urlString = baseUrl + endPoint
-                urlString = endPoint
-
-            ) {
+            val response = client.post(urlString = fullUrl) {
                 headers {
                     append(HttpHeaders.Accept, ContentType.Application.Json.toString())
                     authToken?.let {
                         append(HttpHeaders.Authorization, it)
                     }
                 }
-                body?.let {
-                    contentType(ContentType.Application.Json)
-                    setBody(body)
-                }
-                if (params.isNotEmpty()) {
-                    contentType(ContentType.Application.FormUrlEncoded)
-                    setBody(FormDataContent(Parameters.build {
-                        params.forEach {
-                            append(it.key, it.value.toString())
-                        }
-                    }))
-                }
-                if (formData.isNotEmpty()) {
-                    setBody(
-                        MultiPartFormDataContent(
-                        formData {
+
+                when {
+                    body != null -> {
+                        contentType(ContentType.Application.Json)
+                        setBody(body)
+                    }
+                    params.isNotEmpty() -> {
+                        contentType(ContentType.Application.FormUrlEncoded)
+                        setBody(FormDataContent(Parameters.build {
                             params.forEach {
                                 append(it.key, it.value.toString())
                             }
-                            formData.forEach {
-                                append(it.key, it.file.readBytes(), Headers.build {
-                                    append(
-                                        HttpHeaders.ContentDisposition,
-                                        "filename=\"${it.file.name}\""
-                                    )
-                                    it.contentType?.let { type ->
-                                        append(HttpHeaders.ContentType, type.toString())
+                        }))
+                    }
+                    formData.isNotEmpty() -> {
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    params.forEach {
+                                        append(it.key, it.value.toString())
                                     }
-                                })
-                            }
-                        }
-                    ))
+                                    formData.forEach {
+                                        append(it.key, it.file.readBytes(), Headers.build {
+                                            append(
+                                                HttpHeaders.ContentDisposition,
+                                                "filename=\"${it.file.name}\""
+                                            )
+                                            it.contentType?.let { type ->
+                                                append(HttpHeaders.ContentType, type.toString())
+                                            }
+                                        })
+                                    }
+                                }
+                            )
+                        )
+                    }
                 }
-
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            errorCase(e.message.toString())
-            null
-        }
-        return res
-    }
 
+            if (response.status.value == 200) {
+                Result.success(response.body())
+            } else {
+                Result.failure(
+                    ApiException(
+                        response.status.value,
+                        response.status.description
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            Result.failure(ApiException(0, e.message ?: "CancellationException"))
+        } catch (e: Exception) {
+            Result.failure(ApiException(0, e.message ?: "Unknown error"))
+        }
+    }
 
     suspend inline fun <reified T, reified K> deleteRequest(
         endPoint: String,
@@ -189,89 +141,70 @@ class ApiHelper(val client: HttpClient) {
         params: List<KeyValue> = emptyList(),
         formData: List<MultiPartObj> = emptyList(),
         body: K? = null,
-
-        ): Result<T?> {
-        val res = fetchDeleteResponse(endPoint, authToken, params, formData, body)
-        return if (res?.status?.value == 200) {
-            Result.success(
-                res.body<T>()
-            )
-        } else {
-            Result.failure(
-                ApiException(
-                    res?.status?.value ?: 0,
-                    res?.status?.description ?: ""
-                )
-
-            )
-        }
-
-    }
-
-    suspend inline fun <reified K> fetchDeleteResponse(
-        endPoint: String,
-        authToken: String? = null,
-        params: List<KeyValue> = emptyList(),
-        formData: List<MultiPartObj> = emptyList(),
-        body: K? = null,
-    ): HttpResponse? {
-
-
-        val res = try {
-            client.delete(
-                urlString = baseUrl + endPoint
-
-            ) {
+    ): Result<T> {
+        return try {
+            val response = client.delete(urlString = baseUrl + endPoint) {
                 headers {
                     append(HttpHeaders.Accept, ContentType.Application.Json.toString())
                     authToken?.let {
                         append(HttpHeaders.Authorization, it)
                     }
                 }
-                body?.let {
-                    contentType(ContentType.Application.Json)
-                    setBody(body)
-                }
-                if (params.isNotEmpty()) {
-                    contentType(ContentType.Application.FormUrlEncoded)
-                    setBody(FormDataContent(Parameters.build {
-                        params.forEach {
-                            append(it.key, it.value.toString())
-                        }
-                    }))
-                }
-                if (formData.isNotEmpty()) {
-                    setBody(
-                        MultiPartFormDataContent(
-                        formData {
+
+                when {
+                    body != null -> {
+                        contentType(ContentType.Application.Json)
+                        setBody(body)
+                    }
+                    params.isNotEmpty() -> {
+                        contentType(ContentType.Application.FormUrlEncoded)
+                        setBody(FormDataContent(Parameters.build {
                             params.forEach {
                                 append(it.key, it.value.toString())
                             }
-                            formData.forEach {
-                                append(it.key, it.file.readBytes(), Headers.build {
-                                    append(
-                                        HttpHeaders.ContentDisposition,
-                                        "filename=\"${it.file.name}\""
-                                    )
-                                    it.contentType?.let { type ->
-                                        append(HttpHeaders.ContentType, type.toString())
+                        }))
+                    }
+                    formData.isNotEmpty() -> {
+                        setBody(
+                            MultiPartFormDataContent(
+                                formData {
+                                    params.forEach {
+                                        append(it.key, it.value.toString())
                                     }
-                                })
-                            }
-                        }
-                    ))
+                                    formData.forEach {
+                                        append(it.key, it.file.readBytes(), Headers.build {
+                                            append(
+                                                HttpHeaders.ContentDisposition,
+                                                "filename=\"${it.file.name}\""
+                                            )
+                                            it.contentType?.let { type ->
+                                                append(HttpHeaders.ContentType, type.toString())
+                                            }
+                                        })
+                                    }
+                                }
+                            )
+                        )
+                    }
                 }
-
             }
+
+            if (response.status.value == 200) {
+                Result.success(response.body())
+            } else {
+                Result.failure(
+                    ApiException(
+                        response.status.value,
+                        response.status.description
+                    )
+                )
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            e.printStackTrace()
-            null
+            Result.failure(ApiException(0, e.message ?: "Unknown error"))
         }
-        return res
     }
-
-
 }
-
 
 

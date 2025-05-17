@@ -42,16 +42,24 @@ import org.renxo.deeplinkapplication.viewmodels.ScanningVM
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScanningScreen(modifier: Modifier = Modifier) {
+fun ScanningScreen(navigate: (Int?) -> Unit) {
+    val viewModel: ScanningVM = hiltViewModel()
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
+    GetOneTimeBlock {
+        viewModel.navEvents.collect {
+            navigate(
+                it.id.toIntOrNull()
+            )
+        }
+    }
     Box(
         contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
     ) {
         if (cameraPermissionState.status.isGranted) {
-            CameraPreviewContent(hiltViewModel())
+            CameraPreviewContent(viewModel)
         } else {
             Column(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .wrapContentSize()
                     .widthIn(max = 480.dp),

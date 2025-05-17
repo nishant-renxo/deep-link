@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,6 +22,7 @@ import org.renxo.deeplinkapplication.screens.SelectionScreen
 import org.renxo.deeplinkapplication.screens.SplashScreen
 import org.renxo.deeplinkapplication.screens.WebViewScreen
 import org.renxo.deeplinkapplication.utils.MyAnimation
+import org.renxo.deeplinkapplication.viewmodels.WebViewVM
 
 
 @Composable
@@ -52,40 +55,63 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.ScanningPage> {
-                ScanningScreen()
+                ScanningScreen {
+                    navController.navigateTo(AppRoutes.WebViewPage(it.toString()), finishAll = true)
+                }
             }
             composable<AppRoutes.RegisterPage> {
                 RegisterScreen()
             }
             composable<AppRoutes.WebViewPage> {
-                WebViewScreen("http://192.168.31.171:5173/app?screen=template") {
-                    navController.finish()
+//                val vm: WebViewVM = hiltViewModel()
+                val data = remember {
+                    it.toRoute<AppRoutes.WebViewPage>().apply {
+//                        this.contact_id.toIntOrNull()?.let { it1 ->
+////                            repeat(1000) {
+////                                vm.getDetail(it1)
+////                            }
+//                        }
+                    }
+                }
+                WebViewScreen(
+                    "http://192.168.31.171:5173/template?contact_id=${data.contact_id}",
+                    data.contact_id
+                ) {
+                    navController.navigateTo(AppRoutes.SelectionPage, finishAll = true)
                 }
             }
             composable<AppRoutes.SelectionPage> {
                 SelectionScreen(onScanClick = {
                     navController.navigateTo(AppRoutes.ScanningPage)
                 }, onRegisterClick = {
-                    navController.navigateTo(AppRoutes.RegisterPage)
-                }, onOpenWebView = {
-                    navController.navigateTo(AppRoutes.WebViewPage)
+                    navController.navigateTo(AppRoutes.WebViewPage("101"))
+//                    navController.navigateTo(AppRoutes.RegisterPage)
                 })
             }
             composable<AppRoutes.DeepLinkPage>(
                 deepLinks = listOf(
                     navDeepLink {
-                        uriPattern = "https://ronil-renxo.github.io/deep-link?product={productId}"
+                        uriPattern =
+                            "https://ronil-renxo.github.io/deep-link?id={id}&template_id={templateId}"
                     },
                     navDeepLink {
-                        uriPattern = "http://ronil-renxo.github.io/deep-link?product={productId}"
+                        uriPattern =
+                            "http://ronil-renxo.github.io/deep-link?id={id}&template_id={templateId}"
                     },
                     navDeepLink {
-                        uriPattern = "ronil-renxo.github.io://deep-link?product={productId}"
+                        uriPattern =
+                            "ronil-renxo.github.io://deep-link?id={id}&template_id={templateId}"
                     }
                 )
             ) { backStackEntry ->
-                val productId = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().productId
-                DeepLinkScreen(productId) {
+                val id = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().id
+                val templateId = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().templateId
+                DeepLinkScreen(id, navigate = {
+                    navController.navigateTo(
+                        AppRoutes.WebViewPage(id),
+                        finishAll = true
+                    )
+                }) {
                     navController.navigateTo(AppRoutes.SelectionPage, finishAll = true)
                 }
             }

@@ -9,141 +9,136 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.renxo.deeplinkapplication.MyApplication.Companion.connectivityManager
+import kotlin.coroutines.cancellation.CancellationException
+
 
 abstract class BaseViewModel : ViewModel() {
 
+    private val _exception = MutableSharedFlow<String>()
+    val exception = _exception.asSharedFlow()
 
-    private val _exception: MutableStateFlow<String?> = MutableStateFlow(null)
-    val exception: StateFlow<String?> = _exception
+    private val _showToast = MutableSharedFlow<String>()
+    val showToast = _showToast.asSharedFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
-    private val _showToast = MutableStateFlow<String?>(null)
-    val showToast: Flow<String?> get() = _showToast
-
-    private val _showProgress = MutableStateFlow<Boolean>(false)
-    val showProgress: Flow<Boolean> get() = _showProgress
-
-    fun showToast(value: String?) {
+    fun showToast(value: String) {
         viewModelScope.launch {
             _showToast.emit(value)
-            delay(200)
-            _showToast.emit(null)
         }
     }
 
-    fun showProgress(value: Boolean) {
-        _showProgress.value = value
+    fun setLoading(value: Boolean) {
+        _isLoading.value = value
     }
 
-
-    fun setException(value: String?) {
-        value.let {
-            viewModelScope.launch {
-                _exception.value = it
-                delay(100)
-                _exception.value = null
-            }
+    fun setException(value: String) {
+        viewModelScope.launch {
+            _exception.emit(value)
         }
     }
 
-
+    // Improved CallHelper with proper resource management
     inner class CallingHelper<T>(
-        private val cancelCall: Boolean = true,
-        private val connectCallAgain: Boolean = false,
+        private val autoRetryOnConnectivity: Boolean = false
     ) {
         private var job: Job? = null
-        private fun cancel() {
-            if (cancelCall) {
-                job?.cancel()
+        private var connectivityJob: Job? = null
+
+        // Cancel any ongoing operations when ViewModel is cleared
+        init {
+            viewModelScope.launch {
+                @Suppress("DEPRECATION")
+                addCloseable {
+                    job?.cancel()
+                    connectivityJob?.cancel()
+                }
             }
         }
 
-        private var connectivityManagerJob: Job? = null
-        fun launchCall(call: suspend () -> Result<T>, callback: NetworkCallback<T>) {
-            callback.onProgressing(true)
-            cancel()
+        fun launchCall(
+            call: suspend () -> Result<T>,
+            callback: NetworkCallback<T>
+        ) {
+            // Cancel previous job if exists
+            job?.cancel()
+            // Start new job
             job = viewModelScope.launch {
-                if (connectivityManager.isConnected.value) {
-                    try {
-                        val connect = call()
-                        withContext(Dispatchers.Main) {
-                            connect.onSuccess {
-                                callback.onSuccess(it)
-                            }
-                            connect.onFailure {
-                                val exception = it as ApiException?
+                setLoading(true)
+                callback.onProgressing(true)
 
-                                if (exception?.code == 401) {
-//                                        logoutAndClearPreference()
-                                    callback.unKnownErrorFound(
-                                        exception.errorMessage
-                                    )
-                                } else {
-                                    callback.unKnownErrorFound(
-                                        exception?.errorMessage ?: it.message.toString()
-                                    )
-                                }
-                                if (!connectivityManager.isConnected.value) {
-                                    callback.noInternetAvailable()
-                                    callback.onProgressing(false)
-                                    callback.unKnownErrorFound(
-                                        "No Internet Available"
-                                    )
-                                    if (connectCallAgain) {
-                                        connectivityManagerJob?.cancel()
-                                        connectivityManagerJob = viewModelScope.launch {
-                                            connectivityManager.isConnected.collectLatest {
-                                                if (it) {
-                                                    callback.onRequestAgainRestarted()
-                                                    launchCall(call, callback)
-                                                }
+                try {
+                    if (connectivityManager.isConnected.value) {
+                        try {
+                            val result = call()
+                            result.fold(
+                                onSuccess = {
+                                    callback.onSuccess(it)
+                                },
+                                onFailure = { error ->
+                                    when (error) {
+                                        is ApiException -> {
+                                            if (error.code == 401) {
+                                                // Handle unauthorized access
+                                                // logoutAndClearPreference()
                                             }
+                                            callback.unKnownErrorFound(error.errorMessage)
                                         }
+                                        else -> callback.unKnownErrorFound(error.message ?: "Unknown error")
                                     }
                                 }
-                            }
+                            )
+                        } catch (e: CancellationException) {
+                            // Just propagate cancellation exceptions
+                            callback.unKnownErrorFound(e.message ?: "Unknown error")
 
-                            callback.onProgressing(false)
+//                            throw e
+                        } catch (e: Exception) {
+                            callback.unKnownErrorFound(e.message ?: "Unknown error")
                         }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            callback.unKnownErrorFound(e.message.toString())
-                            callback.onProgressing(false)
-                        }
-                    }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Log.e("CallingHelper", "noInternetAvailable: noInternetAvailable")
+                    } else {
+                        Log.e("CallingHelper", "No internet available")
                         callback.noInternetAvailable()
-                        callback.onProgressing(false)
+                        callback.unKnownErrorFound("No Internet Available")
 
-                    }
-                    if (connectCallAgain) {
-                        connectivityManagerJob?.cancel()
-                        connectivityManagerJob = viewModelScope.launch {
-                            connectivityManager.isConnected.collectLatest {
-                                if (it) {
-                                    callback.onRequestAgainRestarted()
-                                    launchCall(call, callback)
-                                }
-
-                            }
+                        if (autoRetryOnConnectivity) {
+                            setupConnectivityObserver(call, callback)
                         }
+                    }
+                } finally {
+                    setLoading(false)
+                    callback.onProgressing(false)
+                }
+            }
+        }
+
+        private fun setupConnectivityObserver(
+            call: suspend () -> Result<T>,
+            callback: NetworkCallback<T>
+        ) {
+            connectivityJob?.cancel()
+            connectivityJob = viewModelScope.launch {
+                connectivityManager.isConnected.collectLatest { isConnected ->
+                    if (isConnected) {
+                        callback.onRequestAgainRestarted()
+                        // Cancel current connectivity observation
+                        connectivityJob?.cancel()
+                        // Restart the API call
+                        launchCall(call, callback)
                     }
                 }
             }
-
         }
-
-
     }
-
 }
-
 

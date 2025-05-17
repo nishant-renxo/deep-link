@@ -17,10 +17,10 @@ sealed class AppRoutes {
     @Serializable
     data object SelectionPage : NavRouts
     @Serializable
-    data object WebViewPage : NavRouts
+    data class WebViewPage(val contact_id: String) : NavRouts
 
     @Serializable
-    data class DeepLinkPage(val productId: String) : NavRouts
+    data class DeepLinkPage(val id: String,val templateId: String?=null) : NavRouts
 
 
 }

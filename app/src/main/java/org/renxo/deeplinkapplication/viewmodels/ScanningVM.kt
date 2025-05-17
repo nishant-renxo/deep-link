@@ -13,29 +13,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.networking.ApiRepository
-import org.renxo.deeplinkapplication.networking.DetailModel
-import org.renxo.deeplinkapplication.networking.DetailResponse
 import org.renxo.deeplinkapplication.networking.FieldsModel
-import org.renxo.deeplinkapplication.networking.NetworkCallback
 import org.renxo.deeplinkapplication.utils.ImageAnalyzer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import javax.inject.Inject
 
-@HiltViewModel
-class ScanningVM @Inject constructor(private val repository: ApiRepository) : BaseViewModel() {
+class ScanningVM : ViewModel() {
     // Used to set up a link between the Camera and your UI.
     var color by mutableStateOf(Color.Black)
         private set
+    val navEvents = MutableSharedFlow<Navigate>()
 
     var fieldsModel: FieldsModel? by mutableStateOf(null)
         private set
@@ -51,14 +50,10 @@ class ScanningVM @Inject constructor(private val repository: ApiRepository) : Ba
 
     private val analyzer: ImageAnalyzer by lazy {
         ImageAnalyzer {
-//            scanAgain = false
             _showScanResult.value = true // Show the result overlay
             checkIfUrlCorrect(it)
-            Log.e("ImageAnalyzer", ": $it")
         }
     }
-
-
 
 
     private val cameraPreviewUseCase = Preview.Builder().build().apply {
@@ -66,7 +61,6 @@ class ScanningVM @Inject constructor(private val repository: ApiRepository) : Ba
             _surfaceRequest.update { newSurfaceRequest }
         }
     }
-
 
 
     suspend fun bindToCamera(appContext: Context, lifecycleOwner: LifecycleOwner) {
@@ -107,23 +101,17 @@ class ScanningVM @Inject constructor(private val repository: ApiRepository) : Ba
         cameraExecutor.shutdown()
     }
 
-    private val path = "https://ronil-renxo.github.io/deep-link?product="
+    private val path = "https://ronil-renxo.github.io/deep-link?id="
     private fun checkIfUrlCorrect(url: String) {
-
         if (url.contains(path)) {
             val id = url.replace(path, "").toIntOrNull()
             if (id != null) {
-                getDetail(
-                    id.toString(), success = {
-                        _showScanResult.value = true // Show the result overlay
-                        it?.fields?.let {
-                            color = Color.Black
-                            fieldsModel = it
-                        } ?: run {
-                            color = Color.Red
-                            errorValue = "Something went wrong may be the Id was wrong"
-                        }
-                    })
+                viewModelScope.launch {
+                    navEvents.emit(Navigate(id.toString()))
+                }
+            }else {
+                color = Color.Red
+                errorValue = "Invalid Url the ID is not Present"
             }
         } else {
             color = Color.Red
@@ -131,47 +119,7 @@ class ScanningVM @Inject constructor(private val repository: ApiRepository) : Ba
         }
     }
 
-    private val detailCall by lazy { CallingHelper<DetailResponse?>() }
 
-    private fun getDetail(id: String, success: (DetailResponse?) -> Unit) {
-        detailCall.launchCall({
-            repository.getDetail(
-                DetailModel(
-                    id
-                )
-            )
-        }, object : NetworkCallback<DetailResponse?> {
-            override fun noInternetAvailable() {
-                viewModelScope.launch {
-//                        errorMessage.emit("Please Check your Internet Connection")
-                }
-            }
+    data class Navigate(val id: String)
 
-            override fun unKnownErrorFound(error: String) {
-                viewModelScope.launch {
-//                        errorMessage.emit(error)
-                }
-
-            }
-
-            override fun onProgressing(value: Boolean) {
-                if (value) {
-//                        showCircularProgress = true
-                }
-            }
-
-            override fun onRequestAgainRestarted() {
-            }
-
-            override fun onSuccess(result: DetailResponse?) {
-                result.let {
-                    viewModelScope.launch {
-                        success(result)
-
-                    }
-                }
-            }
-
-        })
-    }
 }

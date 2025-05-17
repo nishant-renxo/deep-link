@@ -63,9 +63,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun processDeepLink(uri: Uri): NavRouts? {
-        val productId = uri.getQueryParameter("product")
-        return if (!productId.isNullOrEmpty()) {
-            AppRoutes.DeepLinkPage(productId)
+        val id = uri.getQueryParameter("id")
+        return if (!id.isNullOrEmpty()) {
+            AppRoutes.DeepLinkPage(id)
         } else {
             null
         }

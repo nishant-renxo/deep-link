@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.serialization.json.Json
 import org.renxo.deeplinkapplication.ui.theme.AppColors
 
 
@@ -41,3 +42,10 @@ inline fun GetOneTimeBlock(crossinline block: suspend CoroutineScope.() -> Unit)
     LaunchedEffect(Unit) {
         block()
     }
+
+
+
+val json = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
