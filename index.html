@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Open App</title>
   <script>
-    function createDeepLinkUrl(productId) {
-        const url = `https://ronil-renxo.github.io/deep-link?product=${productId}`;
+    function createDeepLinkUrl(id,templateId) {
+        const url = `https://ronil-renxo.github.io/deep-link?contact_id=${id}&template_id=${templateId}`;
         console.log("createDeepLinkUrl:", url);
         return url;
     }
@@ -20,15 +20,17 @@
 
     function openApp() {
         const urlParams = new URLSearchParams(window.location.search);
-        const productId = urlParams.get("product");
+        const id = urlParams.get("contact_id");
+       const templateId = urlParams.get("template_id");
+
         const packageName = "com.Renxo.DeepLink";
 
-        if (!productId) {
+        if (!id) {
             console.error("No product ID found in URL.");
             return;
         }
 
-        const deepLink = createDeepLinkUrl(productId);
+        const deepLink = createDeepLinkUrl(id,templateId);
         const playStoreUrl = getPlayStoreUri(packageName, deepLink);
 
         const userAgent = navigator.userAgent || navigator.vendor || window.opera;
