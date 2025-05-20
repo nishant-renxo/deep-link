@@ -21,7 +21,6 @@ import org.renxo.deeplinkapplication.navigation.AppRoutes
 import org.renxo.deeplinkapplication.navigation.NavRouts
 import org.renxo.deeplinkapplication.navigation.navigateTo
 import org.renxo.deeplinkapplication.ui.theme.DeepLinkApplicationTheme
-import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
 
 
 @AndroidEntryPoint
@@ -36,7 +35,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             DeepLinkApplicationTheme {
                     AppNavGraph()
-
             }
 //            GetOneTimeBlock {
 //                navigate.collect {

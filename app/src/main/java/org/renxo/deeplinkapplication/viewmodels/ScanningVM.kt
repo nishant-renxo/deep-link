@@ -1,7 +1,6 @@
 package org.renxo.deeplinkapplication.viewmodels
 
 import android.content.Context
-import android.util.Log
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
@@ -15,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,12 +21,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.renxo.deeplinkapplication.networking.ApiRepository
-import org.renxo.deeplinkapplication.networking.FieldsModel
 import org.renxo.deeplinkapplication.utils.ImageAnalyzer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import javax.inject.Inject
 
 class ScanningVM : ViewModel() {
     // Used to set up a link between the Camera and your UI.
@@ -36,8 +31,7 @@ class ScanningVM : ViewModel() {
         private set
     val navEvents = MutableSharedFlow<Navigate>()
 
-    var fieldsModel: FieldsModel? by mutableStateOf(null)
-        private set
+
 
     var errorValue by mutableStateOf("")
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
@@ -104,14 +98,18 @@ class ScanningVM : ViewModel() {
     private val path = "https://ronil-renxo.github.io/deep-link?id="
     private fun checkIfUrlCorrect(url: String) {
         if (url.contains(path)) {
-            val id = url.replace(path, "").toIntOrNull()
-            if (id != null) {
-                viewModelScope.launch {
-                    navEvents.emit(Navigate(id.toString()))
+            url.replace(path, "").split("&").apply {
+                val id = this[0].toIntOrNull()
+                val templateId =
+                    if (this.size > 1) this[1].replace("template_id=", "").toIntOrNull() else null
+                if (id != null) {
+                    viewModelScope.launch {
+                        navEvents.emit(Navigate(id.toString(), templateId))
+                    }
+                } else {
+                    color = Color.Red
+                    errorValue = "Invalid Url the ID is not Present"
                 }
-            }else {
-                color = Color.Red
-                errorValue = "Invalid Url the ID is not Present"
             }
         } else {
             color = Color.Red
@@ -120,6 +118,6 @@ class ScanningVM : ViewModel() {
     }
 
 
-    data class Navigate(val id: String)
+    data class Navigate(val id: String, val templateId: Int?=null)
 
 }

@@ -5,15 +5,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.ContactsContract
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.networking.ApiRepository
 import org.renxo.deeplinkapplication.networking.DetailModel
@@ -34,16 +31,29 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
 
 
     fun saveContact(context: Context) {
-
+        val fields = fieldsModel?.fields
         context.saveContactComprehensive(
             // Basic information
-            name = fieldsModel?.fields?.name.toString(),
-            primaryPostal = fieldsModel?.fields?.address,
-            company = fieldsModel?.fields?.company,
-            primaryEmail = fieldsModel?.fields?.email,
-            jobTitle = fieldsModel?.fields?.job_title,
-            primaryPhone = fieldsModel?.fields?.phone_no,
-            websiteUrl = fieldsModel?.fields?.website,
+            name = fields?.name.toString(),
+            company = fields?.company_name,
+            jobTitle = fields?.job_title,
+            primaryPostal = fields?.address?.getOrNull(0)?.address ?: "",
+            primaryEmail = fields?.emails?.getOrNull(0)?.email,
+            primaryPhone = fields?.phone_numbers?.getOrNull(0)?.phone_no,
+            websiteUrl = fields?.urls?.getOrNull(0)?.url,
+
+            secondaryPostal = fields?.address?.getOrNull(1)?.address ?: "",
+            secondaryEmail = fields?.emails?.getOrNull(1)?.email,
+            secondaryPhone = fields?.phone_numbers?.getOrNull(1)?.phone_no,
+            blogWebsite = fields?.urls?.getOrNull(1)?.url,
+
+
+            tertiaryPostal = fields?.address?.getOrNull(2)?.address ?: "",
+            tertiaryEmail = fields?.emails?.getOrNull(2)?.email,
+            tertiaryPhone = fields?.phone_numbers?.getOrNull(2)?.phone_no,
+            workWebsite = fields?.urls?.getOrNull(2)?.url,
+
+            otherWebsite = fields?.urls?.getOrNull(3)?.url,
         )
 
     }
@@ -83,7 +93,9 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
                 }
 
                 override fun onSuccess(result: DetailResponse) {
-                    fieldsModel = result
+                    if (result.contact_id != null && result.fields != null) {
+                        fieldsModel = result
+                    }
                 }
             }
         )

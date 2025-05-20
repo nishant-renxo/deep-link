@@ -1,6 +1,7 @@
 package org.renxo.deeplinkapplication.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -53,6 +54,7 @@ fun WebViewScreen(
         AndroidView(
             factory = {
                 webView.apply {
+                    Log.e("WebViewScreen", ": $url", )
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT

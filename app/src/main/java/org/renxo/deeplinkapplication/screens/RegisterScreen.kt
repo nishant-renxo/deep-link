@@ -1,6 +1,14 @@
 package org.renxo.deeplinkapplication.screens
 
+import android.annotation.SuppressLint
+import android.provider.Settings
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +18,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -20,60 +32,82 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
+import org.renxo.deeplinkapplication.viewmodels.WebViewVM
 
 
+@SuppressLint("HardwareIds", "SetJavaScriptEnabled")
 @Composable
 fun RegisterScreen(
+    url: String,
+    onBackPressed: (() -> Unit)
 ) {
-//    val onSubmit: (name: String, email: String, address: String, phone: String, age: String) -> Unit = {
-//
-//    }
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var age by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val webView = remember { WebView(context) }
+    val androidID = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) }
+    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
 
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        Text(
-            text = "Register",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 16.dp)
+    BackHandler {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            onBackPressed.invoke()
+        }
+    }
+
+    Box(Modifier.fillMaxWidth()) {
+
+        val postData = "androidID=$androidID&key2=value2"
+        val encodedPostData = postData.toByteArray(Charsets.UTF_8)
+
+        AndroidView(
+            factory = {
+                WebView(it).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                    webViewClient = WebViewClient()
+                    settings.javaScriptEnabled = true
+                    postUrl(url, encodedPostData) // <-- POST request here
+                }
+            },
+            update = {
+                if (it.url != url) {
+                    it.postUrl(url, encodedPostData)
+                }
+            },
+            modifier = Modifier.fillMaxSize()
         )
+        if (viewModel.fieldsModel != null) {
 
-        FancyTextField(value = name, onValueChange = { name = it }, label = "Name")
-        FancyTextField(value = email, onValueChange = { email = it }, label = "Email")
-        FancyTextField(value = address, onValueChange = { address = it }, label = "Address")
-        FancyTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = "Phone Number",
-            keyboardType = KeyboardType.Phone
-        )
-        FancyTextField(
-            value = age,
-            onValueChange = { age = it },
-            label = "Age",
-            keyboardType = KeyboardType.Number
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { /*onSubmit(name, email, address, phone, age) */ },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("Submit")
+            ExtendedFloatingActionButton(
+                onClick = {
+                    viewModel.saveContact(context)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = Color(0xFF2196F3) // Material Blue
+            ) {
+                // You can use Person icon for contacts or Add icon
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Add to Contact", color = Color.White)
+                    Icon(
+                        imageVector = Icons.Default.Person, // Or Icons.Default.Add
+                        contentDescription = "Add Contact",
+                        tint = Color.White
+                    )
+                }
+            }
         }
     }
 
@@ -105,8 +139,3 @@ fun FancyTextField(
 }
 
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun MyPreview() {
-    RegisterScreen()
-}

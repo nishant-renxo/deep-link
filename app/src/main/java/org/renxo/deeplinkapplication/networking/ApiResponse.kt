@@ -12,14 +12,29 @@ data class DetailResponse(
 
 @Serializable
 data class FieldsModel(
-    val address: String? = null,
-    val company: String? = null,
-    val email: String? = null,
-    val job_title: String? = null,
+    val address: List<Addresses?>? = null,
+    val company_name: String? = null,
+    val company_logo: String? = null,
+    val designation: String? = null,
+    val emails: List<Emails?>? = null,
+    val phone_numbers: List<PhoneNumbers>? = null,
+    val urls: List<Urls>? = null,
     val name: String? = null,
-    val phone_no: String? = null,
-    val website: String? = null,
+    val job_title: String? = null,
+    val tag_line: String? = null,
 )
+
+@Serializable
+data class Addresses(val address: String? = null)
+
+@Serializable
+data class Emails(val email: String? = null)
+
+@Serializable
+data class PhoneNumbers(val phone_no: String? = null)
+
+@Serializable
+data class Urls(val url: String? = null)
 
 @Serializable
 data class DetailModel(

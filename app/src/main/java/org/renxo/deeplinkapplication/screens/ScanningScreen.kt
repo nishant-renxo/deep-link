@@ -42,13 +42,13 @@ import org.renxo.deeplinkapplication.viewmodels.ScanningVM
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScanningScreen(navigate: (Int?) -> Unit) {
+fun ScanningScreen(navigate: (Int?,Int?) -> Unit) {
     val viewModel: ScanningVM = hiltViewModel()
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
     GetOneTimeBlock {
         viewModel.navEvents.collect {
             navigate(
-                it.id.toIntOrNull()
+                it.id.toIntOrNull(),it.templateId
             )
         }
     }
@@ -127,10 +127,6 @@ fun CameraPreviewContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
-                viewModel.fieldsModel?.let {
-                    FieldsInfoCard(it)
-                } ?: run {
                     if (viewModel.errorValue.isNotEmpty()) {
                         Text(
                             viewModel.errorValue,
@@ -151,7 +147,7 @@ fun CameraPreviewContent(
                 }
 
 
-            }
+
         }
     }
 }
