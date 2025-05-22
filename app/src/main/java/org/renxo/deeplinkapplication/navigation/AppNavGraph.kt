@@ -61,7 +61,7 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.RegisterPage> {
-                RegisterScreen("http://192.168.31.171:5173/register") {
+                RegisterScreen("http://192.168.29.123:5173/api/android") {
                     navController.finish()
                 }
             }
@@ -87,7 +87,7 @@ fun AppNavGraph(
                 SelectionScreen(onScanClick = {
                     navController.navigateTo(AppRoutes.ScanningPage)
                 }, onRegisterClick = {
-//                    navController.navigateTo(AppRoutes.WebViewPage("101"))
+//                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
                     navController.navigateTo(AppRoutes.RegisterPage)
                 })
             }

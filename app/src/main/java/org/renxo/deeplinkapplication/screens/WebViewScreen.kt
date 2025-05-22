@@ -36,10 +36,10 @@ fun WebViewScreen(
     id: String,
     onBackPressed: (() -> Unit),
 ) {
+    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
     val context = LocalContext.current
     val webView = remember { WebView(context) }
 
-    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
 
     BackHandler {
         if (webView.canGoBack()) {

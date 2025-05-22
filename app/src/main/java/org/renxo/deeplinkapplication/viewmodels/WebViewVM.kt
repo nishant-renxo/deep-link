@@ -16,6 +16,7 @@ import org.renxo.deeplinkapplication.networking.ApiRepository
 import org.renxo.deeplinkapplication.networking.DetailModel
 import org.renxo.deeplinkapplication.networking.DetailResponse
 import org.renxo.deeplinkapplication.networking.NetworkCallback
+import org.renxo.deeplinkapplication.utils.ContactInfo
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,7 +31,7 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
     }
 
 
-    fun saveContact(context: Context) {
+    fun saveContact2(context: Context) {
         val fields = fieldsModel?.fields
         context.saveContactComprehensive(
             // Basic information
@@ -99,6 +100,141 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
                 }
             }
         )
+    }
+
+
+
+    fun saveContact(context: Context) {
+        ContactInfo(context)
+    }
+    fun saveContact3(context: Context) {
+
+        context.saveContactComprehensive(
+            // Basic information
+            name = "RonilTheGreat",//1
+            namePrefix = "Dr.",
+            nameSuffix = "Ph.D.",
+            firstName = "Ronil",
+            middleName = "Kumar",
+            lastName = "Sharma",
+            phoneticName = "Ronil My Friend",//2
+            phoneticFirstName = "Ro-nil",
+            phoneticMiddleName = "Ku-mar",
+            phoneticLastName = "Shar-ma",
+            nickname = "Roni",//5
+            company = "Awesome Technologies Inc.",//3
+            jobTitle = "Chief Innovation Officer",//4
+            // Phone number [Work ,Home,Main,Custom]
+            // Email [Work, Home,Custom]
+            // Address [Work ,Home,Other,Custom]
+            //Date     [Birthday Anniversary,Custom]
+            //single RelationShip   [Assistant,Brother,Child,Domestic Partner,Father,/friend,Manager,Mother,Parent,Partner,Relative,Spouse,Sister,Custom]
+
+            notes = "Met at the tech conference in Mumbai. Interested in AI and mobile development.",//4
+
+            // Phone numbers
+            primaryPhone = "+91 98765 43210",
+            primaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
+            primaryPhoneIsPrimary = true,
+            secondaryPhone = "+91 2345 678901",
+            secondaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME,
+            tertiaryPhone = "+91 87654 32109",
+            tertiaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK,
+            workPhone = "+91 44556 67788",
+            homePhone = "+91 22334 45566",
+            mobilePhone = "+91 99887 76655",
+            faxWorkPhone = "+91 11223 34455",
+            faxHomePhone = "+91 55667 78899",
+            pagerPhone = "+91 66778 89900",
+            otherPhone = "+91 77889 90011",
+            callbackPhone = "+91 88990 01122",
+            carPhone = "+91 99001 12233",
+            companyMainPhone = "+91 11224 45566",
+            internetCallPhone = "ronil.thegreat@sip.example.com",
+
+            // Email addresses
+            primaryEmail = "ronil.personal@email.com",
+            primaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_HOME,
+            primaryEmailIsPrimary = true,
+            secondaryEmail = "ronil.work@awesome-tech.com",
+            secondaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_WORK,
+            tertiaryEmail = "ronil.other@email.com",
+            tertiaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_OTHER,
+            workEmail = "cio@awesome-tech.com",
+            homeEmail = "ronil.home@email.com",
+            otherEmail = "ronil.backup@email.com",
+            mobileEmail = "ronil.mobile@email.com",
+
+            // Postal addresses
+            primaryPostal = "123 Green Street, Model Town, Panipat, Haryana 132103",
+            primaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_HOME,
+            primaryPostalIsPrimary = true,
+            secondaryPostal = "Awesome Tech Building, IT Park, Cyber City, Gurugram, Haryana 122002",
+            secondaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_WORK,
+            tertiaryPostal = "456 Lake View Apartments, Sector 14, Rohtak, Haryana 124001",
+            tertiaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_OTHER,
+
+            // Structured postal components
+            homeStreet = "123 Green Street",
+            homeCity = "Model Town, Panipat",
+            homeRegion = "Haryana",
+            homePostcode = "132103",
+            homeCountry = "India",
+            workStreet = "Awesome Tech Building, IT Park",
+            workCity = "Gurugram",
+            workRegion = "Haryana",
+            workPostcode = "122002",
+            workCountry = "India",
+
+            // IM information
+            imHandle = "ronil.awesome",
+            imProtocol = ContactsContract.CommonDataKinds.Im.PROTOCOL_GOOGLE_TALK,
+            imIsPrimary = true,
+            aimHandle = "ronilAIM",
+            msnHandle = "ronilMSN",
+            yahooHandle = "ronilYahoo",
+            skypeHandle = "ronil.thegreat",
+            qqHandle = "ronilQQ",
+            icqHandle = "ronilICQ",
+            jabberHandle = "ronil@jabber.org",
+
+            // Website
+            websiteUrl = "https://www.ronilthegreat.com",
+            websiteType = ContactsContract.CommonDataKinds.Website.TYPE_HOME,
+            workWebsite = "https://www.awesome-tech.com",
+            homeWebsite = "https://www.ronilpersonal.com",
+            blogWebsite = "https://blog.ronilthegreat.com",
+            profileWebsite = "https://linkedin.com/in/ronilthegreat",
+            otherWebsite = "https://github.com/ronilthegreat",
+
+            // Events / Dates
+            birthday = "1985-05-15",
+            anniversary = "2010-11-20",
+            customDate1 = "2015-07-10",
+            customDate1Label = "Joined Awesome Tech",
+            customDate2 = "2020-03-25",
+            customDate2Label = "Promotion to CIO",
+
+            // Relationships
+            spouse = "Priya Sharma",
+            child = "Anika Sharma",
+            mother = "Sunita Sharma",
+            father = "Rajesh Sharma",
+            parent = "Ramesh Sharma",
+            brother = "Sunil Sharma",
+            sister = "Anjali Sharma",
+            friend = "Vikram Patel",
+            relative = "Pankaj Kumar",
+            manager = "Amit Verma",
+            assistant = "Neha Singh",
+            referredBy = "Rahul Gupta",
+            partner = "Sanjay Mehta",
+            domesticPartner = "N/A",
+            customRelation = "Mentor",
+            customRelationLabel = "Career Mentor",
+            customTypeList = listOf(Pair("Sir", "DOM Don"), Pair("Sir22", "DOM 4556464"))
+        )
+
     }
 
 
@@ -306,14 +442,14 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
                 ContentValues().apply {
                     put(
                         ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE
+                        ContactsContract.CommonDataKinds.Nickname .CONTENT_ITEM_TYPE
                     )
-                    put(ContactsContract.CommonDataKinds.Relation.NAME, it.first)
+                    put(ContactsContract.CommonDataKinds.Nickname.NAME, it.first)
                     put(
-                        ContactsContract.CommonDataKinds.Relation.TYPE,
-                        ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
+                        ContactsContract.CommonDataKinds.Nickname.TYPE,
+                        ContactsContract.CommonDataKinds.Nickname.TYPE_CUSTOM
                     )
-                    put(ContactsContract.CommonDataKinds.Relation.LABEL, it.second)
+                    put(ContactsContract.CommonDataKinds.Nickname.LABEL, it.second)
                     dataList.add(this)
                 }
             }
@@ -1042,128 +1178,5 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
     }*/
 
 
-/*
-    fun saveContact(context: Context) {
 
-        context.saveContactComprehensive(
-            // Basic information
-            name = "Ronil The Great",
-            namePrefix = "Dr.",
-            nameSuffix = "Ph.D.",
-            firstName = "Ronil",
-            middleName = "Kumar",
-            lastName = "Sharma",
-            phoneticName = "Ronil My Friend",
-            phoneticFirstName = "Ro-nil",
-            phoneticMiddleName = "Ku-mar",
-            phoneticLastName = "Shar-ma",
-            nickname = "Roni",
-            company = "Awesome Technologies Inc.",
-            jobTitle = "Chief Innovation Officer",
-            notes = "Met at the tech conference in Mumbai. Interested in AI and mobile development.",
 
-            // Phone numbers
-            primaryPhone = "+91 98765 43210",
-            primaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
-            primaryPhoneIsPrimary = true,
-            secondaryPhone = "+91 2345 678901",
-            secondaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME,
-            tertiaryPhone = "+91 87654 32109",
-            tertiaryPhoneType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK,
-            workPhone = "+91 44556 67788",
-            homePhone = "+91 22334 45566",
-            mobilePhone = "+91 99887 76655",
-            faxWorkPhone = "+91 11223 34455",
-            faxHomePhone = "+91 55667 78899",
-            pagerPhone = "+91 66778 89900",
-            otherPhone = "+91 77889 90011",
-            callbackPhone = "+91 88990 01122",
-            carPhone = "+91 99001 12233",
-            companyMainPhone = "+91 11224 45566",
-            internetCallPhone = "ronil.thegreat@sip.example.com",
-
-            // Email addresses
-            primaryEmail = "ronil.personal@email.com",
-            primaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_HOME,
-            primaryEmailIsPrimary = true,
-            secondaryEmail = "ronil.work@awesome-tech.com",
-            secondaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_WORK,
-            tertiaryEmail = "ronil.other@email.com",
-            tertiaryEmailType = ContactsContract.CommonDataKinds.Email.TYPE_OTHER,
-            workEmail = "cio@awesome-tech.com",
-            homeEmail = "ronil.home@email.com",
-            otherEmail = "ronil.backup@email.com",
-            mobileEmail = "ronil.mobile@email.com",
-
-            // Postal addresses
-            primaryPostal = "123 Green Street, Model Town, Panipat, Haryana 132103",
-            primaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_HOME,
-            primaryPostalIsPrimary = true,
-            secondaryPostal = "Awesome Tech Building, IT Park, Cyber City, Gurugram, Haryana 122002",
-            secondaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_WORK,
-            tertiaryPostal = "456 Lake View Apartments, Sector 14, Rohtak, Haryana 124001",
-            tertiaryPostalType = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_OTHER,
-
-            // Structured postal components
-            homeStreet = "123 Green Street",
-            homeCity = "Model Town, Panipat",
-            homeRegion = "Haryana",
-            homePostcode = "132103",
-            homeCountry = "India",
-            workStreet = "Awesome Tech Building, IT Park",
-            workCity = "Gurugram",
-            workRegion = "Haryana",
-            workPostcode = "122002",
-            workCountry = "India",
-
-            // IM information
-            imHandle = "ronil.awesome",
-            imProtocol = ContactsContract.CommonDataKinds.Im.PROTOCOL_GOOGLE_TALK,
-            imIsPrimary = true,
-            aimHandle = "ronilAIM",
-            msnHandle = "ronilMSN",
-            yahooHandle = "ronilYahoo",
-            skypeHandle = "ronil.thegreat",
-            qqHandle = "ronilQQ",
-            icqHandle = "ronilICQ",
-            jabberHandle = "ronil@jabber.org",
-
-            // Website
-            websiteUrl = "https://www.ronilthegreat.com",
-            websiteType = ContactsContract.CommonDataKinds.Website.TYPE_HOME,
-            workWebsite = "https://www.awesome-tech.com",
-            homeWebsite = "https://www.ronilpersonal.com",
-            blogWebsite = "https://blog.ronilthegreat.com",
-            profileWebsite = "https://linkedin.com/in/ronilthegreat",
-            otherWebsite = "https://github.com/ronilthegreat",
-
-            // Events / Dates
-            birthday = "1985-05-15",
-            anniversary = "2010-11-20",
-            customDate1 = "2015-07-10",
-            customDate1Label = "Joined Awesome Tech",
-            customDate2 = "2020-03-25",
-            customDate2Label = "Promotion to CIO",
-
-            // Relationships
-            spouse = "Priya Sharma",
-            child = "Anika Sharma",
-            mother = "Sunita Sharma",
-            father = "Rajesh Sharma",
-            parent = "Ramesh Sharma",
-            brother = "Sunil Sharma",
-            sister = "Anjali Sharma",
-            friend = "Vikram Patel",
-            relative = "Pankaj Kumar",
-            manager = "Amit Verma",
-            assistant = "Neha Singh",
-            referredBy = "Rahul Gupta",
-            partner = "Sanjay Mehta",
-            domesticPartner = "N/A",
-            customRelation = "Mentor",
-            customRelationLabel = "Career Mentor"
-        )
-
-    }
-
-* */

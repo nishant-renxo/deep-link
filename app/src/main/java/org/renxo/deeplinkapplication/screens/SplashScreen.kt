@@ -21,9 +21,13 @@ import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
 
 @Composable
 fun SplashScreen(
-    navigate:  () -> Unit,
+    navigate: () -> Unit,
 ) {
-
+//    val context = LocalContext.current
+//    LaunchedEffect(Unit) {
+//        val accountManager = AccountManager.get(context)
+//        Log.e("SplashScreen", ": ${accountManager.accounts.size}")
+//    }
     val scale = remember {
         Animatable(0f)
     }
@@ -31,7 +35,7 @@ fun SplashScreen(
         scale.animateTo(
             targetValue = 1.5f,
             animationSpec = tween(
-                durationMillis = 500 ,
+                durationMillis = 500,
                 easing = {
                     OvershootInterpolator(1.5f).getInterpolation(it)
                 }

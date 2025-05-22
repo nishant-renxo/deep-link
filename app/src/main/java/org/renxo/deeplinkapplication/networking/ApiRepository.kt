@@ -1,8 +1,6 @@
 package org.renxo.deeplinkapplication.networking
 
-private const val authUrl = "http://192.168.31.43:8090/"
-
-
+private const val authUrl = "http://192.168.29.199:8092/"
 
 class ApiRepository(private val helper: ApiHelper) {
 
