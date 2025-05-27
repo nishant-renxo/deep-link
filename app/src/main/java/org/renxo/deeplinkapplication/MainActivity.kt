@@ -3,6 +3,7 @@ package org.renxo.deeplinkapplication
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
@@ -21,15 +23,20 @@ import org.renxo.deeplinkapplication.navigation.AppRoutes
 import org.renxo.deeplinkapplication.navigation.NavRouts
 import org.renxo.deeplinkapplication.navigation.navigateTo
 import org.renxo.deeplinkapplication.ui.theme.DeepLinkApplicationTheme
+import org.renxo.deeplinkapplication.utils.ContactInfo
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 //    private val navigate: MutableSharedFlow<NavRouts?> = MutableSharedFlow()
 
+    @OptIn(ExperimentalEncodingApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
 //        getPlayStoreUri(this, createDeepLinkUrl("92"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent {

@@ -32,18 +32,28 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.renxo.deeplinkapplication.viewmodels.WebViewVM
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 
+@OptIn(ExperimentalEncodingApi::class)
 @SuppressLint("HardwareIds", "SetJavaScriptEnabled")
 @Composable
 fun RegisterScreen(
     url: String,
-    onBackPressed: (() -> Unit)
+    onBackPressed: (() -> Unit),
 ) {
     val context = LocalContext.current
     val webView = remember { WebView(context) }
-    val androidID = remember { Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) }
+        val androidID = remember {
+            Base64.encode(
+                Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                    .toByteArray()
+            )
+    //        Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        }
     val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
+
 
     BackHandler {
         if (webView.canGoBack()) {
@@ -55,24 +65,24 @@ fun RegisterScreen(
 
     Box(Modifier.fillMaxWidth()) {
 
-        val postData = "androidID=$androidID&key2=value2"
-        val encodedPostData = postData.toByteArray(Charsets.UTF_8)
+//        val postData = "androidID=$androidID&key2=value2"
+//        val encodedPostData = postData.toByteArray(Charsets.UTF_8)
 
         AndroidView(
             factory = {
-                WebView(it).apply {
+                webView.apply {
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
                     webViewClient = WebViewClient()
                     settings.javaScriptEnabled = true
-                    postUrl(url, encodedPostData) // <-- POST request here
+                    loadUrl("$url?android_id=$androidID")
                 }
             },
             update = {
                 if (it.url != url) {
-                    it.postUrl(url, encodedPostData)
+                    webView.loadUrl(url)
                 }
             },
             modifier = Modifier.fillMaxSize()

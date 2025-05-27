@@ -88,7 +88,6 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation(libs.slf4j.android)
 
 
 
