@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import org.renxo.deeplinkapplication.screens.DeepLinkScreen
+import org.renxo.deeplinkapplication.screens.ImageRendering
 import org.renxo.deeplinkapplication.screens.RegisterScreen
 import org.renxo.deeplinkapplication.screens.ScanningScreen
 import org.renxo.deeplinkapplication.screens.SelectionScreen
@@ -40,7 +41,7 @@ fun AppNavGraph(
                 .padding(innerPadding),
 
             navController = navController,
-            startDestination = AppRoutes.SplashPage,
+            startDestination = AppRoutes.ImageRenderingPage,
             enterTransition = { MyAnimation.myEnterAnimation() },
             exitTransition = { MyAnimation.myExitAnimation() },
             popEnterTransition = { MyAnimation.myEnterAnimation() },
@@ -49,8 +50,11 @@ fun AppNavGraph(
 
             composable<AppRoutes.SplashPage> {
                 SplashScreen {
-                    navController.navigateTo(AppRoutes.SelectionPage, finish = true)
+                    navController.navigateTo(AppRoutes.ImageRenderingPage, finish = true)
                 }
+            }
+            composable<AppRoutes.ImageRenderingPage> {
+                ImageRendering()
             }
             composable<AppRoutes.ScanningPage> {
                 ScanningScreen { id, templateId ->
@@ -77,7 +81,8 @@ fun AppNavGraph(
                     }
                 }
                 WebViewScreen(
-                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId?:""}",
+//                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
+                    "http://192.168.29.98:5173/",
                     data.contact_id
                 ) {
                     navController.navigateTo(AppRoutes.SelectionPage, finishAll = true)
@@ -109,7 +114,7 @@ fun AppNavGraph(
             ) { backStackEntry ->
                 val id = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().id
                 val templateId = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().templateId
-                DeepLinkScreen( navigate = {
+                DeepLinkScreen(navigate = {
                     navController.navigateTo(
                         AppRoutes.WebViewPage(id, templateId?.toIntOrNull()),
                         finishAll = true

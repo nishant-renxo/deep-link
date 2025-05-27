@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.volley)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,6 +89,10 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.coil.compose) // Latest version as of now
+    implementation(libs.coil.svg)
+    implementation("com.caverock:androidsvg-aar:1.4")
+    implementation("com.google.zxing:core:3.5.2")
 
 
 

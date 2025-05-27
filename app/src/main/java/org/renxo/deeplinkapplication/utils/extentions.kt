@@ -1,5 +1,6 @@
 package org.renxo.deeplinkapplication.utils
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -7,9 +8,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.CoroutineScope
@@ -48,4 +51,21 @@ inline fun GetOneTimeBlock(crossinline block: suspend CoroutineScope.() -> Unit)
 val json = Json {
     ignoreUnknownKeys = true
     encodeDefaults = true
+}
+
+
+@Composable
+fun LockScreenOrientation(orientation: Int) {
+
+    val context = LocalContext.current
+    DisposableEffect(orientation) {
+        val activity = context as Activity
+        val originalOrientation = activity.requestedOrientation
+        activity.requestedOrientation = orientation
+        onDispose {
+            // Restore original orientation when navigating away
+//            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            activity.requestedOrientation = originalOrientation
+        }
+    }
 }

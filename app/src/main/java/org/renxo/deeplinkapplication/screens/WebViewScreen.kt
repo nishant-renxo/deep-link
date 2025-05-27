@@ -1,8 +1,10 @@
 package org.renxo.deeplinkapplication.screens
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
+import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -59,6 +61,7 @@ fun WebViewScreen(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
+
                     webViewClient = WebViewClient()
                     settings.javaScriptEnabled = true
                     loadUrl(url)
@@ -67,7 +70,7 @@ fun WebViewScreen(
             },
             update = {
                 if (it.url != url) {
-                    it.loadUrl(url)
+                    it.loadUrl(it.url!!)
                 }
             },
             modifier = Modifier.fillMaxSize()
