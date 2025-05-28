@@ -8,4 +8,11 @@ class ApiRepository(private val helper: ApiHelper) {
             endPoint = "http://192.168.29.199:8092/" + ApiEndpoints.GET_CONTACT,
             body = body
         )
+
+
+    suspend fun getTokenUsingSessionID(body: GenerateTokenRequest) =
+        helper.postRequest<GenerateTokenResponse, GenerateTokenRequest>(
+            endPoint = "http://192.168.29.199:8092/" + ApiEndpoints.GENERATE_TOKEN,
+            body = body
+        )
 }

@@ -48,6 +48,18 @@ data class TemplatesModel(
     val template_id: String,
 )
 
+
+@Serializable
+data class GenerateTokenRequest(
+    val id: String,
+)
+
+@Serializable
+data class GenerateTokenResponse(
+    val expiry: Int? = null,
+    val token: String? = null,
+)
+
 @Serializable
 data object NotImportant : Any()
 

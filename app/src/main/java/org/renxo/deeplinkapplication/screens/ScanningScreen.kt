@@ -42,13 +42,13 @@ import org.renxo.deeplinkapplication.viewmodels.ScanningVM
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScanningScreen(navigate: (Int?,Int?) -> Unit) {
+fun ScanningScreen(navigate: (Int?, Int?) -> Unit) {
     val viewModel: ScanningVM = hiltViewModel()
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
     GetOneTimeBlock {
         viewModel.navEvents.collect {
             navigate(
-                it.id.toIntOrNull(),it.templateId
+                it.id.toIntOrNull(), it.templateId
             )
         }
     }
@@ -127,25 +127,24 @@ fun CameraPreviewContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                    if (viewModel.errorValue.isNotEmpty()) {
-                        Text(
-                            viewModel.errorValue,
-                            fontSize = 18.sp,
-                            modifier = Modifier.padding(10.dp),
-                            fontWeight = FontWeight.Bold,
-                            color = viewModel.color,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(onClick = {
-                            viewModel.resumeScanning()
-                        }) {
-                            Text("Scan Again")
-                        }
-                    } else {
-                        CircularProgressIndicator()
+                if (viewModel.errorValue.isNotEmpty()) {
+                    Text(
+                        viewModel.errorValue,
+                        fontSize = 18.sp,
+                        modifier = Modifier.padding(10.dp),
+                        fontWeight = FontWeight.Bold,
+                        color = viewModel.color,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(onClick = {
+                        viewModel.resumeScanning()
+                    }) {
+                        Text("Scan Again")
                     }
+                } else {
+                    CircularProgressIndicator()
                 }
-
+            }
 
 
         }

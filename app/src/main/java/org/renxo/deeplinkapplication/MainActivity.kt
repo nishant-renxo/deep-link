@@ -3,60 +3,51 @@ package org.renxo.deeplinkapplication
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.navigation.AppNavGraph
 import org.renxo.deeplinkapplication.navigation.AppRoutes
 import org.renxo.deeplinkapplication.navigation.NavRouts
-import org.renxo.deeplinkapplication.navigation.navigateTo
 import org.renxo.deeplinkapplication.ui.theme.DeepLinkApplicationTheme
-import org.renxo.deeplinkapplication.utils.ContactInfo
-import kotlin.io.encoding.Base64
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-//    private val navigate: MutableSharedFlow<NavRouts?> = MutableSharedFlow()
 
-    @OptIn(ExperimentalEncodingApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
 //        getPlayStoreUri(this, createDeepLinkUrl("92"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContent {
-            DeepLinkApplicationTheme {
-                    AppNavGraph()
-            }
-//            GetOneTimeBlock {
-//                navigate.collect {
-//                    it?.let {
-//                        navController.navigateTo(it, finishAll = true)
-//                    }
-//                }
-//            }
+            App()
         }
 //        checkDeeplink(intent)
 
     }
 
+    @Composable
+    fun App() {
+        DeepLinkApplicationTheme {
+            CompositionLocalProvider(LocalMainViewModelProvider provides viewModel()) {
+                AppNavGraph()
+            }
+        }
+    }
+
     private fun checkDeeplink(intent: Intent?) {
-        Log.e("onCreate", ": ${intent?.data}", )
+        Log.e("onCreate", ": ${intent?.data}")
 
         intent?.data?.let { uri ->
             processDeepLink(uri)

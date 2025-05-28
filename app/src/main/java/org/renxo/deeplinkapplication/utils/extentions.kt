@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -17,7 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.serialization.json.Json
+import org.renxo.deeplinkapplication.MyApplication
 import org.renxo.deeplinkapplication.ui.theme.AppColors
+import org.renxo.deeplinkapplication.viewmodels.MainVM
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,3 +72,16 @@ fun LockScreenOrientation(orientation: Int) {
         }
     }
 }
+
+
+
+fun getRandomSessionId(length: Int=22): String {
+    val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+    return (1..length)
+        .map { allowedChars.random() }
+        .joinToString("")
+}
+val LocalMainViewModelProvider = compositionLocalOf<MainVM> {
+    error("No MainVM provided")
+}
+val preferenceManager = MyApplication.preferenceManager

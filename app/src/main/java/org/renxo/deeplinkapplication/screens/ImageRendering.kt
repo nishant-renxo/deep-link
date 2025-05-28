@@ -7,10 +7,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -409,7 +417,7 @@ const val svgTect =
 
 
 @Composable
-fun ImageRendering() {
+fun ShowMyVisitingCardScreen() {
     val context = LocalContext.current
 //    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
     Box(Modifier.fillMaxSize()) {
@@ -418,6 +426,8 @@ fun ImageRendering() {
             svgXml = svgTect.trimIndent(), modifier = Modifier
 //            .fillMaxSize()
         )
+
+
     }
 }
 
@@ -473,37 +483,18 @@ fun SvgFromXmlStringFitScreen(
                 bitmap = bitmap,
                 contentDescription = null,
                 modifier = modifier,
-//                    .fillMaxSize()
+//                   .fillMaxSize()
                 contentScale = ContentScale.Inside // Maintain aspect ratio
             )
-        }?: kotlin.run {
+        } ?: kotlin.run {
             CircularProgressIndicator()
         }
-
         QRCodeDisplay(
             text = "https://your-text-or-url.com",
             modifier = Modifier.size(300.dp)
         )
     }
 }
-
-@Composable
-fun QRCodeDisplay(text: String, modifier: Modifier = Modifier) {
-    val qrBitmap = remember(text) { generateQrCodeBitmap(text) }
-    Image(
-        bitmap = qrBitmap.asImageBitmap(),
-        contentDescription = "QR Code",
-        modifier = modifier
-    )
-}
-
-fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {
-    val matrix = Matrix().apply {
-        postRotate(angle)
-    }
-    return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
-}
-
 
 fun generateQrCodeBitmap(content: String, size: Int = 512): Bitmap {
     val bitMatrix: BitMatrix = MultiFormatWriter().encode(
@@ -521,3 +512,23 @@ fun generateQrCodeBitmap(content: String, size: Int = 512): Bitmap {
     }
     return bitmap
 }
+
+
+fun rotateBitmap(source: Bitmap, angle: Float): Bitmap {
+    val matrix = Matrix().apply {
+        postRotate(angle)
+    }
+    return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+}
+
+
+@Composable
+fun QRCodeDisplay(text: String, modifier: Modifier = Modifier) {
+    val qrBitmap = remember(text) { generateQrCodeBitmap(text) }
+    Image(
+        bitmap = qrBitmap.asImageBitmap(),
+        contentDescription = "QR Code",
+        modifier = modifier
+    )
+}
+

@@ -3,37 +3,29 @@ package org.renxo.deeplinkapplication.screens
 import android.annotation.SuppressLint
 import android.provider.Settings
 import android.view.ViewGroup
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
-import org.renxo.deeplinkapplication.viewmodels.WebViewVM
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
+import java.net.URLEncoder
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -41,10 +33,11 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @OptIn(ExperimentalEncodingApi::class)
 @SuppressLint("HardwareIds", "SetJavaScriptEnabled")
 @Composable
-fun RegisterScreen(
+fun EditScreen(
     url: String,
     onBackPressed: (Boolean) -> Unit,
 ) {
+    val token= LocalMainViewModelProvider.current.authToken
     val context = LocalContext.current
     val webView = remember { WebView(context) }
     val androidID = remember {
@@ -54,8 +47,11 @@ fun RegisterScreen(
         )
         //        Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
     }
-    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
 
+    val postParams = mapOf(
+        "param1" to "value1",
+        "param2" to "value2"
+    )
 
     BackHandler {
         if (webView.canGoBack()) {
@@ -71,59 +67,48 @@ fun RegisterScreen(
 //        val encodedPostData = postData.toByteArray(Charsets.UTF_8)
 
         AndroidView(
-            factory = {
-                webView.apply {
+            factory = { context ->
+                WebView(context).apply {
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
                     )
-                    webViewClient = WebViewClient()
+
+                    webViewClient = object : WebViewClient() {
+                        override fun shouldInterceptRequest(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): WebResourceResponse? {
+                            return super.shouldInterceptRequest(view, request)
+                        }
+
+                        override fun onPageFinished(view: WebView?, url: String?) {
+                            super.onPageFinished(view, url)
+                        }
+                    }
+
                     settings.javaScriptEnabled = true
-                    loadUrl("$url?android_id=$androidID")
-                }
-            },
-            update = {
-                if (it.url != url) {
-                    webView.loadUrl(url)
+
+                    // Prepare POST parameters
+                    val postData = (postParams + mapOf("android_id" to androidID))
+                        .map { "${URLEncoder.encode(it.key, "UTF-8")}=${URLEncoder.encode(it.value, "UTF-8")}" }
+                        .joinToString("&")
+                        .toByteArray()
+
+                    // Inject Bearer token header using Cookie workaround
+                    val cookieManager = android.webkit.CookieManager.getInstance()
+                    cookieManager.setAcceptCookie(true)
+                    cookieManager.setCookie(url, "Authorization=Bearer $token")
+
+                    // Load the URL with POST data
+                    postUrl(url, postData)
                 }
             },
             modifier = Modifier.fillMaxSize()
         )
-        FloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp), onClick = {
-                onBackPressed(true)
-            }) {
-            Icon(
-                imageVector = Icons.Default.Home, // Or Icons.Default.Add
-                contentDescription = "Home",
-                tint = Color.White
-            )
-        }
-        if (viewModel.fieldsModel != null) {
 
-            ExtendedFloatingActionButton(
-                onClick = {
-                    viewModel.saveContact(context)
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = Color(0xFF2196F3) // Material Blue
-            ) {
-                // You can use Person icon for contacts or Add icon
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Add to Contact", color = Color.White)
-                    Icon(
-                        imageVector = Icons.Default.Person, // Or Icons.Default.Add
-                        contentDescription = "Add Contact",
-                        tint = Color.White
-                    )
-                }
-            }
-        }
+
+
+
     }
-
 }
-

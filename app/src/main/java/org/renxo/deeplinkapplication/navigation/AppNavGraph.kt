@@ -15,18 +15,21 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
 import org.renxo.deeplinkapplication.screens.DeepLinkScreen
-import org.renxo.deeplinkapplication.screens.ImageRendering
+import org.renxo.deeplinkapplication.screens.EditScreen
 import org.renxo.deeplinkapplication.screens.RegisterScreen
 import org.renxo.deeplinkapplication.screens.ScanningScreen
 import org.renxo.deeplinkapplication.screens.SelectionScreen
+import org.renxo.deeplinkapplication.screens.ShowMyVisitingCardScreen
 import org.renxo.deeplinkapplication.screens.SplashScreen
 import org.renxo.deeplinkapplication.screens.WebViewScreen
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 import org.renxo.deeplinkapplication.utils.MyAnimation
 
 
 @Composable
 fun AppNavGraph(
 ) {
+    val mainVM = LocalMainViewModelProvider.current
     val navController = rememberNavController()
     Scaffold(
         modifier = Modifier
@@ -41,7 +44,7 @@ fun AppNavGraph(
                 .padding(innerPadding),
 
             navController = navController,
-            startDestination = AppRoutes.ImageRenderingPage,
+            startDestination = AppRoutes.SplashPage,
             enterTransition = { MyAnimation.myEnterAnimation() },
             exitTransition = { MyAnimation.myExitAnimation() },
             popEnterTransition = { MyAnimation.myEnterAnimation() },
@@ -50,11 +53,11 @@ fun AppNavGraph(
 
             composable<AppRoutes.SplashPage> {
                 SplashScreen {
-                    navController.navigateTo(AppRoutes.ImageRenderingPage, finish = true)
+                    navController.navigateTo(AppRoutes.SelectionPage, finish = true)
                 }
             }
-            composable<AppRoutes.ImageRenderingPage> {
-                ImageRendering()
+            composable<AppRoutes.ShowMyVisitingCardPage> {
+                ShowMyVisitingCardScreen()
             }
             composable<AppRoutes.ScanningPage> {
                 ScanningScreen { id, templateId ->
@@ -66,6 +69,14 @@ fun AppNavGraph(
             }
             composable<AppRoutes.RegisterPage> {
                 RegisterScreen("http://192.168.29.123:5173/api/android") {
+                    if (it) {
+                        mainVM.getToken()
+                    }
+                    navController.finish()
+                }
+            }
+            composable<AppRoutes.EditPage> {
+                EditScreen("http://192.168.29.123:5173/api/android") {
                     navController.finish()
                 }
             }
@@ -81,8 +92,8 @@ fun AppNavGraph(
                     }
                 }
                 WebViewScreen(
-//                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
-                    "http://192.168.29.98:5173/",
+                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
+//                    "http://192.168.29.98:5173/",
                     data.contact_id
                 ) {
                     navController.navigateTo(AppRoutes.SelectionPage, finishAll = true)
@@ -94,6 +105,11 @@ fun AppNavGraph(
                 }, onRegisterClick = {
 //                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
                     navController.navigateTo(AppRoutes.RegisterPage)
+                }, onShowClick = {
+                    navController.navigateTo(AppRoutes.ShowMyVisitingCardPage)
+                }, onEditClick = {
+                    navController.navigateTo(AppRoutes.EditPage)
+
                 })
             }
             composable<AppRoutes.DeepLinkPage>(

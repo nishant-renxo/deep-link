@@ -91,9 +91,9 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.coil.compose) // Latest version as of now
     implementation(libs.coil.svg)
-    implementation("com.caverock:androidsvg-aar:1.4")
-    implementation("com.google.zxing:core:3.5.2")
-
+    implementation(libs.androidsvg.aar)
+    implementation(libs.zxing.core)
+    implementation(libs.androidx.datastore.preferences)
 
 
 

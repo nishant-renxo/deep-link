@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,12 +13,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
+import org.renxo.deeplinkapplication.viewmodels.SelectionVM
 
 @Composable
 fun SelectionScreen(
     onScanClick: () -> Unit,
+    onShowClick: () -> Unit,
     onRegisterClick: () -> Unit,
-//    onOpenWebView: () -> Unit
+    onEditClick: () -> Unit,
+    viewModel: SelectionVM = viewModel(),
 ) {
     Column(
         modifier = Modifier
@@ -42,20 +46,28 @@ fun SelectionScreen(
         ) {
             Text("Scan")
         }
+        if (viewModel.showButton) {
+            Button(
+                onClick = onShowClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+            ) {
+                Text("Scan")
+            }
+        }
 
         Button(
-            onClick = onRegisterClick,
+            onClick = if (viewModel.showButton) onEditClick else onRegisterClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
-            Text("Register")
+            Text(if (viewModel.showButton) "Edit" else "Register")
         }
+    }
+    GetOneTimeBlock {
+        viewModel.checkStatus()
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun MyPreview() {
-    SelectionScreen({}, {})
-}
