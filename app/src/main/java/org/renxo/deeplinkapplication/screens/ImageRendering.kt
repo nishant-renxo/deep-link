@@ -7,17 +7,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +33,7 @@ import com.caverock.androidsvg.SVG
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.common.BitMatrix
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 
 const val svgTect =
     "<svg id=\"svg2\" viewBox=\"0 0 336 192\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:bx=\"https://boxy-svg.com\">\n" +
@@ -418,14 +411,15 @@ const val svgTect =
 
 @Composable
 fun ShowMyVisitingCardScreen() {
-    val context = LocalContext.current
+    val mainVM = LocalMainViewModelProvider.current
 //    LockScreenOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE)
     Box(Modifier.fillMaxSize()) {
-
-        SvgFromXmlStringFitScreen(
-            svgXml = svgTect.trimIndent(), modifier = Modifier
-//            .fillMaxSize()
-        )
+        mainVM.contact?.template_data?.svg?.trimIndent()?.let {
+            SvgFromXmlStringFitScreen(
+                svgXml = it, url = mainVM.qrCode.toString(), modifier = Modifier
+                //            .fillMaxSize()
+            )
+        }
 
 
     }
@@ -435,6 +429,7 @@ fun ShowMyVisitingCardScreen() {
 @Composable
 fun SvgFromXmlStringFitScreen(
     svgXml: String,
+    url: String,
     modifier: Modifier = Modifier,
 ) {
     var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -490,7 +485,7 @@ fun SvgFromXmlStringFitScreen(
             CircularProgressIndicator()
         }
         QRCodeDisplay(
-            text = "https://your-text-or-url.com",
+            text = url,
             modifier = Modifier.size(300.dp)
         )
     }

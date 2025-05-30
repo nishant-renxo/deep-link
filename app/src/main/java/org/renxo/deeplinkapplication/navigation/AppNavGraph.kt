@@ -70,7 +70,7 @@ fun AppNavGraph(
             composable<AppRoutes.RegisterPage> {
                 RegisterScreen("http://192.168.29.123:5173/api/android") {
                     if (it) {
-                        mainVM.getToken()
+                        mainVM.checkNeedForFetchingDetails()
                     }
                     navController.finish()
                 }
@@ -109,7 +109,6 @@ fun AppNavGraph(
                     navController.navigateTo(AppRoutes.ShowMyVisitingCardPage)
                 }, onEditClick = {
                     navController.navigateTo(AppRoutes.EditPage)
-
                 })
             }
             composable<AppRoutes.DeepLinkPage>(

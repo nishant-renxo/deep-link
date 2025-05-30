@@ -1,4 +1,4 @@
-package org.renxo.deeplinkapplication.networking
+package org.renxo.deeplinkapplication.models
 
 import kotlinx.serialization.Serializable
 
@@ -38,9 +38,9 @@ data class Urls(val url: String? = null)
 
 @Serializable
 data class DetailModel(
-    val id: String,
-    val username: String,
-    val password: String,
+    val action: String,
+//    val username: String,
+//    val password: String,
 )
 
 @Serializable

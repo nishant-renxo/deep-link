@@ -74,6 +74,13 @@ fun LockScreenOrientation(orientation: Int) {
 }
 
 
+inline fun getMap(
+    crossinline init: HashMap<String, Any?>.() -> Unit = {}
+): HashMap<String, Any?> {
+    return HashMap<String, Any?>().apply {
+        init()
+    }
+}
 
 fun getRandomSessionId(length: Int=22): String {
     val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')

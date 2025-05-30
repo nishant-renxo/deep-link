@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 import org.renxo.deeplinkapplication.viewmodels.SelectionVM
 
 @Composable
@@ -25,6 +26,7 @@ fun SelectionScreen(
     onEditClick: () -> Unit,
     viewModel: SelectionVM = viewModel(),
 ) {
+    val mainVM= LocalMainViewModelProvider.current
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,14 +48,14 @@ fun SelectionScreen(
         ) {
             Text("Scan")
         }
-        if (viewModel.showButton) {
+        if (!mainVM.authToken.isNullOrEmpty()) {
             Button(
                 onClick = onShowClick,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp)
             ) {
-                Text("Scan")
+                Text("Show")
             }
         }
 

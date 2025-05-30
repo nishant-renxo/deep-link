@@ -7,4 +7,14 @@ interface AppConstants {
         const val AUTH_TOKEN = "auth_token"
         const val SESSION_ID = "session_id"
     }
+
+    object SuccessCodes {
+        const val SUCCESS200 = "SUCCESS200"
+
+    }    object Params {
+        const val user = "user"
+        const val contact = "contact"
+        const val url = "url"
+
+    }
 }

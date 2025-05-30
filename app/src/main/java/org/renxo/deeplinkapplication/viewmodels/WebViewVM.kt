@@ -12,11 +12,16 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import org.renxo.deeplinkapplication.models.Contact
+import org.renxo.deeplinkapplication.models.DetailResponse
+import org.renxo.deeplinkapplication.models.ParamModel
+import org.renxo.deeplinkapplication.models.ResponseModel
+import org.renxo.deeplinkapplication.models.User
 import org.renxo.deeplinkapplication.networking.ApiRepository
-import org.renxo.deeplinkapplication.networking.DetailModel
-import org.renxo.deeplinkapplication.networking.DetailResponse
 import org.renxo.deeplinkapplication.networking.NetworkCallback
+import org.renxo.deeplinkapplication.utils.AppConstants
 import org.renxo.deeplinkapplication.utils.ContactInfo
+import org.renxo.deeplinkapplication.utils.json
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,20 +64,16 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
 
     }
 
-    private val detailCall by lazy { CallingHelper<DetailResponse>() }
+    private val detailCall by lazy { CallingHelper<ResponseModel>() }
 
     fun getDetail(id: Int) {
         detailCall.launchCall(
             call = {
                 repository.getDetail(
-                    DetailModel(
-                        id.toString(),
-                        "admin@renxo.tech",
-                        "adm1N"
-                    )
+                    ParamModel(action = "GetInfo")
                 )
             },
-            callback = object : NetworkCallback<DetailResponse> {
+            callback = object : NetworkCallback<ResponseModel> {
                 override fun noInternetAvailable() {
                     viewModelScope.launch {
 //                        _errorMessage.value = "Please Check your Internet Connection"
@@ -93,20 +94,38 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
                     // Optional: notify UI that request is being retried
                 }
 
-                override fun onSuccess(result: DetailResponse) {
-                    if (result.contact_id != null && result.fields != null) {
-                        fieldsModel = result
+                override fun onSuccess(result: ResponseModel) {
+                    if (result.result?.code == AppConstants.SuccessCodes.SUCCESS200) {
+                        result.params?.let { params ->
+
+                            params[AppConstants.Params.contact]?.let {
+                                val contacts = json.decodeFromString<List<Contact>>(
+                                    it
+                                )
+                            }
+                            params[AppConstants.Params.user]?.let {
+                                val user = json.decodeFromString<User>(
+                                    it
+                                )
+                            }
+                            val qrUrl = params[AppConstants.Params.url]
+                        }
                     }
+
+
+//                    if (result.contact_id != null && result.fields != null) {
+//                        fieldsModel = result
+//                    }
                 }
             }
         )
     }
 
 
-
     fun saveContact(context: Context) {
         ContactInfo(context)
     }
+
     fun saveContact3(context: Context) {
 
         context.saveContactComprehensive(
@@ -442,7 +461,7 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
                 ContentValues().apply {
                     put(
                         ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Nickname .CONTENT_ITEM_TYPE
+                        ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
                     )
                     put(ContactsContract.CommonDataKinds.Nickname.NAME, it.first)
                     put(

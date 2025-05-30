@@ -99,9 +99,6 @@ fun WebViewScreen(
         }
     }
 
-    GetOneTimeBlock {
-        viewModel.getDetail(id.toInt())
-    }
 
 
 }
