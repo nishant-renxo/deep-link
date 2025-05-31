@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import org.renxo.deeplinkapplication.models.Contact
+
 import org.renxo.deeplinkapplication.models.DetailResponse
 import org.renxo.deeplinkapplication.models.ParamModel
 import org.renxo.deeplinkapplication.models.ResponseModel
@@ -64,62 +64,6 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
 
     }
 
-    private val detailCall by lazy { CallingHelper<ResponseModel>() }
-
-    fun getDetail(id: Int) {
-        detailCall.launchCall(
-            call = {
-                repository.getDetail(
-                    ParamModel(action = "GetInfo")
-                )
-            },
-            callback = object : NetworkCallback<ResponseModel> {
-                override fun noInternetAvailable() {
-                    viewModelScope.launch {
-//                        _errorMessage.value = "Please Check your Internet Connection"
-                    }
-                }
-
-                override fun unKnownErrorFound(error: String) {
-                    viewModelScope.launch {
-//                        _errorMessage.value = error
-                    }
-                }
-
-                override fun onProgressing(value: Boolean) {
-                    // BaseViewModel already handles loading state
-                }
-
-                override fun onRequestAgainRestarted() {
-                    // Optional: notify UI that request is being retried
-                }
-
-                override fun onSuccess(result: ResponseModel) {
-                    if (result.result?.code == AppConstants.SuccessCodes.SUCCESS200) {
-                        result.params?.let { params ->
-
-                            params[AppConstants.Params.contact]?.let {
-                                val contacts = json.decodeFromString<List<Contact>>(
-                                    it
-                                )
-                            }
-                            params[AppConstants.Params.user]?.let {
-                                val user = json.decodeFromString<User>(
-                                    it
-                                )
-                            }
-                            val qrUrl = params[AppConstants.Params.url]
-                        }
-                    }
-
-
-//                    if (result.contact_id != null && result.fields != null) {
-//                        fieldsModel = result
-//                    }
-                }
-            }
-        )
-    }
 
 
     fun saveContact(context: Context) {

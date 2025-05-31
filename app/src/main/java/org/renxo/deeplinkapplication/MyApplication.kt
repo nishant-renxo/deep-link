@@ -1,6 +1,7 @@
 package org.renxo.deeplinkapplication
 
 import android.app.Application
+import android.util.Log
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,16 +29,9 @@ class MyApplication : Application() {
             PreferenceManager(filesDir.resolve(AppConstants.Preferences.APP_PREFERENCES).absolutePath)
         val deepLinkHandler = DeepLinkHandler(this)
         deepLinkHandler.checkForInstallReferrer()
-        checkSessionId()
     }
 
-    private fun checkSessionId() {
-        CoroutineScope(Dispatchers.IO).launch {
-            if (preferenceManager.getSessionId().isNullOrEmpty()) {
-                preferenceManager.setSessionId(getRandomSessionId())
-            }
-        }
-    }
+
 
     override fun onTerminate() {
         super.onTerminate()

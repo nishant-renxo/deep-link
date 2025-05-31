@@ -76,7 +76,7 @@ class ApiHelper( val client: HttpClient,  val baseUrl: String = "http://url/api/
                 headers {
                     append(HttpHeaders.Accept, ContentType.Application.Json.toString())
                     authToken?.let {
-                        append(HttpHeaders.Authorization, it)
+                        append(HttpHeaders.Authorization, "Bearer $it")
                     }
                 }
 

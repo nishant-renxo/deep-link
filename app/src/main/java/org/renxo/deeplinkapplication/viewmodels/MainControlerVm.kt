@@ -1,5 +1,6 @@
 package org.renxo.deeplinkapplication.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,16 +26,31 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
     var authToken: String? = null
         private set
 
-    init {
-        checkNeedForFetchingDetails()
-    }
-
-
     var qrCode by mutableStateOf<String?>(null)
     var user by mutableStateOf<User?>(null)
     var contact by mutableStateOf<Contact?>(null)
+    var sessionId :String?= ""
 
-     fun checkNeedForFetchingDetails() {
+    init {
+        checkNeedForFetchingDetails()
+        viewModelScope.launch {
+            sessionId=preferenceManager.getSessionId()
+            preferenceManager.getContact()?.let {
+                if (contact == null) {
+                    contact = it
+                }
+            }
+            preferenceManager.getQrCode()?.let {
+                if (qrCode == null) {
+                    qrCode = it
+                }
+            }
+        }
+    }
+
+
+    fun checkNeedForFetchingDetails() {
+
         viewModelScope.launch {
             preferenceManager.getAuthToken().let {
                 if (it.isNullOrEmpty()) {
@@ -67,7 +83,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
 
                 override fun unKnownErrorFound(error: String) {
                     viewModelScope.launch {
-//                        _errorMessage.value = error
+                        Log.e("unKnownErrorFound", ": $error")
                     }
                 }
 
@@ -96,10 +112,11 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
     private val detailCall by lazy { CallingHelper<ResponseModel>() }
 
     fun getContactDetails() {
+
         detailCall.launchCall(
             call = {
                 repository.getDetail(
-                    ParamModel(action = "GetInfo")
+                    ParamModel(action = "GetInfo"), authToken
                 )
             },
             callback = object : NetworkCallback<ResponseModel> {
@@ -110,6 +127,8 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
                 }
 
                 override fun unKnownErrorFound(error: String) {
+                    Log.e("unKnownErrorFound", ": $error")
+
                     viewModelScope.launch {
 //                        _errorMessage.value = error
                     }
@@ -126,12 +145,19 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
                 override fun onSuccess(result: ResponseModel) {
                     if (result.result?.code == AppConstants.SuccessCodes.SUCCESS200) {
                         result.params?.let { params ->
+                            qrCode = params[AppConstants.Params.url]
 
-                            params[AppConstants.Params.contact]?.let {
+
+                            params[AppConstants.Params.contacts]?.let {
                                 json.decodeFromString<List<Contact>>(
                                     it
                                 ).firstOrNull()?.let { con ->
                                     contact = con
+                                    viewModelScope.launch {
+                                        contact?.let {
+                                            preferenceManager.setData(it, qrCode)
+                                        }
+                                    }
                                 }
                             }
                             params[AppConstants.Params.user]?.let {
@@ -141,14 +167,10 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
                                     user = us
                                 }
                             }
-                            qrCode = params[AppConstants.Params.url]
                         }
                     }
 
 
-//                    if (result.contact_id != null && result.fields != null) {
-//                        fieldsModel = result
-//                    }
                 }
             }
         )

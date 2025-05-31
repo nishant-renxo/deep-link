@@ -51,7 +51,7 @@ data class TemplatesModel(
 
 @Serializable
 data class GenerateTokenRequest(
-    val id: String,
+    val session_id: String,
 )
 
 @Serializable

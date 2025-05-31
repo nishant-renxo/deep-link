@@ -13,7 +13,7 @@ sealed class AppRoutes {
     data object ScanningPage : NavRouts
 
     @Serializable
-    data object RegisterPage : NavRouts
+    data class RegisterPage(val session:String) : NavRouts
     @Serializable
     data object SelectionPage : NavRouts
     @Serializable

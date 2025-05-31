@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.createBitmap
@@ -36,10 +35,10 @@ import com.google.zxing.common.BitMatrix
 import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 
 const val svgTect =
-    "<svg id=\"svg2\" viewBox=\"0 0 336 192\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:bx=\"https://boxy-svg.com\">\n" +
+    "<svg session_id=\"svg2\" viewBox=\"0 0 336 192\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:bx=\"https://boxy-svg.com\">\n" +
             "  <desc>Source: openclipart.org/detail/209545</desc>\n" +
             "  <defs>\n" +
-            "    <clipPath id=\"clip0_19_2162\">\n" +
+            "    <clipPath session_id=\"clip0_19_2162\">\n" +
             "      <rect width=\"336\" height=\"192\" rx=\"10\" fill=\"white\"/>\n" +
             "    </clipPath>\n" +
             "    <style bx:fonts=\"Inter\">@import url(https://fonts.googleapis.com/css2?family=Inter%3Aital%2Cwght%400%2C100..900&amp;display=swap);</style>\n" +
@@ -471,7 +470,7 @@ fun SvgFromXmlStringFitScreen(
     Column(
         modifier = Modifier
             .wrapContentSize(),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.SpaceEvenly
     ) {
         imageBitmap?.let { bitmap ->
             Image(

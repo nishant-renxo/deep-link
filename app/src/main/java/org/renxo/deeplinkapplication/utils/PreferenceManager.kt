@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.first
 import okio.Path.Companion.toPath
+import org.renxo.deeplinkapplication.models.Contact
 
 class PreferenceManager(preferenceName: String) {
 
@@ -18,7 +19,6 @@ class PreferenceManager(preferenceName: String) {
             preferences.clear()
         }
     }
-
 
     private val preferenceManager: DataStore<Preferences> by lazy {
         PreferenceDataStoreFactory.createWithPath(produceFile = { (if (preferenceName.contains(".preferences_pb")) preferenceName else "$preferenceName.preferences_pb").toPath() })
@@ -82,12 +82,34 @@ class PreferenceManager(preferenceName: String) {
     }
 
     suspend fun getSessionId(): String? {
+//        return "session_12345"
         return getString(AppConstants.Preferences.SESSION_ID)
     }
 
 
     suspend fun getAuthToken(): String? {
         return getString(AppConstants.Preferences.AUTH_TOKEN)
+    }
+
+    suspend fun setData(contact: Contact, qrCode: String?) {
+        preferenceManager.edit {
+            it[stringPreferencesKey(AppConstants.Preferences.CONTACT)] =
+                json.encodeToString(contact)
+            qrCode?.let { code ->
+                it[stringPreferencesKey(AppConstants.Preferences.QR_CODE)] = code
+            }
+        }
+
+    }
+
+    suspend fun getContact(): Contact? {
+        return preferenceManager.data.first()[stringPreferencesKey(AppConstants.Preferences.CONTACT)]?.let {
+            json.decodeFromString<Contact>(it)
+        }
+    }
+
+    suspend fun getQrCode(): String? {
+        return preferenceManager.data.first()[stringPreferencesKey(AppConstants.Preferences.QR_CODE)]
     }
 
 

@@ -7,23 +7,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import kotlinx.coroutines.launch
+import org.renxo.deeplinkapplication.MyApplication.Companion.preferenceManager
 import org.renxo.deeplinkapplication.screens.DeepLinkScreen
 import org.renxo.deeplinkapplication.screens.EditScreen
+import org.renxo.deeplinkapplication.screens.OtherUserScreen
 import org.renxo.deeplinkapplication.screens.RegisterScreen
 import org.renxo.deeplinkapplication.screens.ScanningScreen
 import org.renxo.deeplinkapplication.screens.SelectionScreen
 import org.renxo.deeplinkapplication.screens.ShowMyVisitingCardScreen
 import org.renxo.deeplinkapplication.screens.SplashScreen
-import org.renxo.deeplinkapplication.screens.WebViewScreen
 import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 import org.renxo.deeplinkapplication.utils.MyAnimation
+import org.renxo.deeplinkapplication.utils.getRandomSessionId
+import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
 
 
 @Composable
@@ -68,7 +75,8 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.RegisterPage> {
-                RegisterScreen("http://192.168.29.123:5173/api/android") {
+                val session=it.toRoute<AppRoutes.RegisterPage>().session
+                 RegisterScreen("http://192.168.168.29.199:5173",session) {
                     if (it) {
                         mainVM.checkNeedForFetchingDetails()
                     }
@@ -82,6 +90,9 @@ fun AppNavGraph(
             }
             composable<AppRoutes.WebViewPage> {
 //                val vm: WebViewVM = hiltViewModel()
+                val viewModel: OtherUserInfoVM = hiltViewModel<OtherUserInfoVM>()
+
+
                 val data = remember {
                     it.toRoute<AppRoutes.WebViewPage>().apply {
 //                        this.contact_id.toIntOrNull()?.let { it1 ->
@@ -91,8 +102,11 @@ fun AppNavGraph(
 //                        }
                     }
                 }
-                WebViewScreen(
-                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
+                LaunchedEffect(viewModel) {
+                    viewModel.getContactDetails(data.contact_id, data.templateId.toString())
+                }
+                OtherUserScreen(
+//                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
 //                    "http://192.168.29.98:5173/",
                     data.contact_id
                 ) {
@@ -100,11 +114,16 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.SelectionPage> {
+                val scope = rememberCoroutineScope()
                 SelectionScreen(onScanClick = {
                     navController.navigateTo(AppRoutes.ScanningPage)
                 }, onRegisterClick = {
 //                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
-                    navController.navigateTo(AppRoutes.RegisterPage)
+                    scope.launch {
+                        checkSessionId {
+                            navController.navigateTo(AppRoutes.RegisterPage(it))
+                        }
+                    }
                 }, onShowClick = {
                     navController.navigateTo(AppRoutes.ShowMyVisitingCardPage)
                 }, onEditClick = {
@@ -142,5 +161,13 @@ fun AppNavGraph(
 
 
     }
+}
+
+private suspend fun checkSessionId(callback: (String) -> Unit) {
+    if (preferenceManager.getSessionId().isNullOrEmpty()) {
+        preferenceManager.setSessionId(getRandomSessionId())
+    }
+    preferenceManager.getSessionId()?.let { callback(it) }
+
 }
 

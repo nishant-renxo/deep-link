@@ -39,6 +39,7 @@ fun WebViewScreen(
     onBackPressed: (() -> Unit),
 ) {
     val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
+
     val context = LocalContext.current
     val webView = remember { WebView(context) }
 

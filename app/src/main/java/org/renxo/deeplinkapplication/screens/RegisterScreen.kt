@@ -2,38 +2,31 @@ package org.renxo.deeplinkapplication.screens
 
 import android.annotation.SuppressLint
 import android.provider.Settings
+import android.util.Log
 import android.view.ViewGroup
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
-import org.renxo.deeplinkapplication.viewmodels.WebViewVM
+import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
+import org.renxo.deeplinkapplication.utils.preferenceManager
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -43,6 +36,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 @Composable
 fun RegisterScreen(
     url: String,
+    session: String,
     onBackPressed: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
@@ -54,7 +48,7 @@ fun RegisterScreen(
         )
         //        Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
     }
-    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
+
 
 
     BackHandler {
@@ -79,18 +73,28 @@ fun RegisterScreen(
                     )
                     webViewClient = WebViewClient()
                     settings.javaScriptEnabled = true
-                    loadUrl("$url?android_id=$androidID")
+                    settings.domStorageEnabled = true;
+//                    settings.allowFileAccess = true;
+//                    settings.allow ContentAccess = true;
+//                    settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
+                    loadUrl("$url?session_id=${session}")
+//                    loadUrl(url)
+
                 }
             },
             update = {
                 if (it.url != url) {
+                    Log.e("RegisterScreen", ": $url", )
                     webView.loadUrl(url)
                 }
             },
             modifier = Modifier.fillMaxSize()
         )
         FloatingActionButton(
+            containerColor = Color(0xFF2196F3) // Material Blue
+            ,
             modifier = Modifier
+
                 .align(Alignment.BottomEnd)
                 .padding(16.dp), onClick = {
                 onBackPressed(true)
@@ -101,6 +105,7 @@ fun RegisterScreen(
                 tint = Color.White
             )
         }
+/*
         if (viewModel.fieldsModel != null) {
 
             ExtendedFloatingActionButton(
@@ -123,6 +128,7 @@ fun RegisterScreen(
                 }
             }
         }
+*/
     }
 
 }

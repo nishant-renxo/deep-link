@@ -6,6 +6,8 @@ interface AppConstants {
         const val APP_PREFERENCES = "prefs.preferences_pb"
         const val AUTH_TOKEN = "auth_token"
         const val SESSION_ID = "session_id"
+        const val CONTACT = "contact"
+        const val QR_CODE = "qrCode"
     }
 
     object SuccessCodes {
@@ -13,7 +15,8 @@ interface AppConstants {
 
     }    object Params {
         const val user = "user"
-        const val contact = "contact"
+        const val template = "template"
+        const val contacts = "contacts"
         const val url = "url"
 
     }

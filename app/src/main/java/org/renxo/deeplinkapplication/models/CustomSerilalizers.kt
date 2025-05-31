@@ -1,10 +1,6 @@
 package org.renxo.deeplinkapplication.models
 
-import com.renxo.user.models.CustomField
-import com.renxo.user.models.CustomScreenAttributes
-import com.renxo.user.models.InitializePackingWorkFlow
-import com.renxo.user.models.PickingAttribute
-import com.renxo.user.models.TaskInfo
+
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.MapSerializer

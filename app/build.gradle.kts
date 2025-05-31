@@ -94,7 +94,8 @@ dependencies {
     implementation(libs.androidsvg.aar)
     implementation(libs.zxing.core)
     implementation(libs.androidx.datastore.preferences)
-
+    implementation(libs.slf4j.simple)
+    implementation(libs.slf4j.api)
 
 
 }
