@@ -1,19 +1,32 @@
 package org.renxo.deeplinkapplication.viewmodels
 
+import android.app.Application
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
+import android.os.Environment
+import android.util.Log
+import android.view.Surface
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
+import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.internal.Contexts.getApplication
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,16 +35,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.utils.ImageAnalyzer
+import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 class ScanningVM : ViewModel() {
-    // Used to set up a link between the Camera and your UI.
+    // Existing properties
     var color by mutableStateOf(Color.Black)
         private set
     val navEvents = MutableSharedFlow<Navigate>()
-
-
+    val imageNavEvents = MutableSharedFlow<String>() // New: for image navigation
 
     var errorValue by mutableStateOf("")
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
@@ -40,22 +53,39 @@ class ScanningVM : ViewModel() {
     private val _showScanResult = MutableStateFlow(false)
     val showScanResult = _showScanResult.asStateFlow()
 
+    // New: Capture mode properties
+    private val _isCaptureMode = MutableStateFlow(false)
+    val isCaptureMode = _isCaptureMode.asStateFlow()
+
+    private val _capturedImage = MutableStateFlow<Bitmap?>(null)
+    val capturedImage = _capturedImage.asStateFlow()
+
+    private val _showCapturedImage = MutableStateFlow(false)
+    val showCapturedImage = _showCapturedImage.asStateFlow()
+
+    private var savedImageUri: String? = null
+
     private val cameraExecutor: ExecutorService by lazy { Executors.newSingleThreadExecutor() }
+
+    // New: Image capture use case with proper rotation
+    private val imageCapture = ImageCapture.Builder()
+        .setTargetRotation(Surface.ROTATION_0)
+        .build()
 
     private val analyzer: ImageAnalyzer by lazy {
         ImageAnalyzer {
-            _showScanResult.value = true // Show the result overlay
-            checkIfUrlCorrect(it)
+            if (!_isCaptureMode.value) { // Only analyze in scan mode
+                _showScanResult.value = true
+                checkIfUrlCorrect(it)
+            }
         }
     }
-
 
     private val cameraPreviewUseCase = Preview.Builder().build().apply {
         setSurfaceProvider { newSurfaceRequest ->
             _surfaceRequest.update { newSurfaceRequest }
         }
     }
-
 
     suspend fun bindToCamera(appContext: Context, lifecycleOwner: LifecycleOwner) {
         val processCameraProvider = ProcessCameraProvider.awaitInstance(appContext)
@@ -66,23 +96,133 @@ class ScanningVM : ViewModel() {
 
         imageAnalysis.setAnalyzer(cameraExecutor, analyzer)
 
-        processCameraProvider.bindToLifecycle(
-            lifecycleOwner,
-            DEFAULT_BACK_CAMERA,
-            imageAnalysis,
-            cameraPreviewUseCase
-        )
+        // Function to bind camera with current mode
+        fun bindCamera() {
+            try {
+                processCameraProvider.unbindAll()
+                if (_isCaptureMode.value) {
+                    processCameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        DEFAULT_BACK_CAMERA,
+                        cameraPreviewUseCase,
+                        imageCapture
+                    )
+                } else {
+                    processCameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        DEFAULT_BACK_CAMERA,
+                        cameraPreviewUseCase,
+                        imageAnalysis
+                    )
+                }
+            } catch (e: Exception) {
+                // Handle rebinding errors
+                println("Camera binding error: ${e.message}")
+            }
+        }
+
+        // Initial binding
+        bindCamera()
+
+        // Listen for mode changes and rebind camera
+        val modeJob = viewModelScope.launch {
+            _isCaptureMode.collect {
+                bindCamera()
+            }
+        }
 
         // Keep this coroutine active until the viewmodel is cleared
         try {
             awaitCancellation()
         } finally {
+            modeJob.cancel()
             processCameraProvider.unbindAll()
             cameraExecutor.shutdown()
         }
     }
 
-    // Instead of toggling a "scanAgain" flag, just hide the result overlay
+    fun toggleCaptureMode() {
+        _isCaptureMode.value = !_isCaptureMode.value
+        // Reset states when switching modes
+        resetStates()
+    }
+
+    fun captureImage(context: Context) {
+        // Ensure we're in capture mode
+        if (!_isCaptureMode.value) {
+            errorValue = "Switch to capture mode first"
+            color = Color.Red
+            _showScanResult.value = true
+            return
+        }
+
+        val imageFile = File(
+            context.getExternalFilesDir(Environment.DIRECTORY_PICTURES),
+            "captured_${System.currentTimeMillis()}.jpg"
+        )
+
+        val outputFileOptions = ImageCapture.OutputFileOptions.Builder(imageFile).build()
+
+        try {
+            imageCapture.takePicture(
+                outputFileOptions,
+                ContextCompat.getMainExecutor(context),
+                object : ImageCapture.OnImageSavedCallback {
+                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                        savedImageUri = imageFile.absolutePath
+                        // Load and correct the captured image orientation
+                        val bitmap = loadAndFixImageOrientation(imageFile.absolutePath)
+                        _capturedImage.value = bitmap
+                        _showCapturedImage.value = true
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        // Handle error - you might want to show an error message
+                        errorValue = "Failed to capture image: ${exception.message}"
+                        color = Color.Red
+                        _showScanResult.value = true
+                        println("ImageCapture error: ${exception.message}")
+                    }
+                }
+            )
+        } catch (e: Exception) {
+            errorValue = "Camera not ready: ${e.message}"
+            color = Color.Red
+            _showScanResult.value = true
+            println("Capture exception: ${e.message}")
+        }
+    }
+
+    fun cancelCapture() {
+        // Delete the saved image file if it exists
+        savedImageUri?.let { uri ->
+            File(uri).delete()
+        }
+        resetCaptureStates()
+    }
+
+    fun confirmCapture() {
+        savedImageUri?.let { uri ->
+            viewModelScope.launch {
+                imageNavEvents.emit(uri)
+            }
+        }
+    }
+
+    private fun resetCaptureStates() {
+        _capturedImage.value = null
+        _showCapturedImage.value = false
+        savedImageUri = null
+    }
+
+    private fun resetStates() {
+        resetCaptureStates()
+        errorValue = ""
+        color = Color.Black
+        _showScanResult.value = false
+        analyzer.isAnalyzeCompleted = false
+    }
+
     fun resumeScanning() {
         errorValue = ""
         color = Color.Black
@@ -117,7 +257,34 @@ class ScanningVM : ViewModel() {
         }
     }
 
+    private fun loadAndFixImageOrientation(imagePath: String): Bitmap? {
+        return try {
+            val bitmap = BitmapFactory.decodeFile(imagePath)
+            val exif = ExifInterface(imagePath)
+            val orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
 
-    data class Navigate(val id: String, val templateId: Int?=null)
+            val matrix = Matrix()
+            when (orientation) {
+                ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
+                ExifInterface.ORIENTATION_ROTATE_180 -> matrix.postRotate(180f)
+                ExifInterface.ORIENTATION_ROTATE_270 -> matrix.postRotate(270f)
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.postScale(-1f, 1f)
+                ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.postScale(1f, -1f)
+            }
 
+            if (!matrix.isIdentity) {
+                Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            } else {
+                bitmap
+            }
+        } catch (e: Exception) {
+            println("Error loading/rotating image: ${e.message}")
+            BitmapFactory.decodeFile(imagePath)
+        }
+    }
+
+    data class Navigate(val id: String, val templateId: Int? = null)
 }

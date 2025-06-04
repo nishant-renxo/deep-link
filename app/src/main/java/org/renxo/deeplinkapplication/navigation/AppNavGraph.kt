@@ -67,12 +67,14 @@ fun AppNavGraph(
                 ShowMyVisitingCardScreen()
             }
             composable<AppRoutes.ScanningPage> {
-                ScanningScreen { id, templateId ->
+                ScanningScreen (navigate = { id, templateId ->
                     navController.navigateTo(
                         AppRoutes.WebViewPage(id.toString(), templateId),
                         finishAll = true
                     )
-                }
+                }, navigateWithImage = {
+
+                })
             }
             composable<AppRoutes.RegisterPage> {
                 val session=it.toRoute<AppRoutes.RegisterPage>().session
