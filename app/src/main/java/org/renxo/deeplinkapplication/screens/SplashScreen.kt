@@ -23,11 +23,7 @@ import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
 fun SplashScreen(
     navigate: () -> Unit,
 ) {
-//    val context = LocalContext.current
-//    LaunchedEffect(Unit) {
-//        val accountManager = AccountManager.get(context)
-//        Log.e("SplashScreen", ": ${accountManager.accounts.size}")
-//    }
+
     val scale = remember {
         Animatable(0f)
     }

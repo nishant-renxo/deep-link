@@ -120,12 +120,12 @@ fun AppNavGraph(
                 SelectionScreen(onScanClick = {
                     navController.navigateTo(AppRoutes.ScanningPage)
                 }, onRegisterClick = {
-//                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
-                    scope.launch {
-                        checkSessionId {
-                            navController.navigateTo(AppRoutes.RegisterPage(it))
-                        }
-                    }
+                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
+//                    scope.launch {
+//                        checkSessionId {
+//                            navController.navigateTo(AppRoutes.RegisterPage(it))
+//                        }
+//                    }
                 }, onShowClick = {
                     navController.navigateTo(AppRoutes.ShowMyVisitingCardPage)
                 }, onEditClick = {

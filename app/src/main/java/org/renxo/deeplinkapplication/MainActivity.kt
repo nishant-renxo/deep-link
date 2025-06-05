@@ -18,8 +18,8 @@ import org.renxo.deeplinkapplication.navigation.AppNavGraph
 import org.renxo.deeplinkapplication.navigation.AppRoutes
 import org.renxo.deeplinkapplication.navigation.NavRouts
 import org.renxo.deeplinkapplication.ui.theme.DeepLinkApplicationTheme
+import org.renxo.deeplinkapplication.utils.ContactInfo
 import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
-import kotlin.io.encoding.ExperimentalEncodingApi
 
 
 @AndroidEntryPoint
@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 //        getPlayStoreUri(this, createDeepLinkUrl("92"))
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+//        ContactInfo(this)
         setContent {
             App()
         }

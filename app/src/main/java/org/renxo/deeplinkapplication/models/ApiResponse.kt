@@ -17,6 +17,8 @@ data class FieldsModel(
     val company_logo: String? = null,
     val designation: String? = null,
     val emails: List<Emails?>? = null,
+    val dates: List<String?>? = null,
+    val relationships: List<String?>? = null,
     val phone_numbers: List<PhoneNumbers>? = null,
     val urls: List<Urls>? = null,
     val name: String? = null,

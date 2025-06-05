@@ -4,22 +4,43 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.drawable.PictureDrawable
+import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,11 +57,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.caverock.androidsvg.SVG
+import org.renxo.deeplinkapplication.utils.ContactInfo
 import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
 
 
@@ -51,13 +75,31 @@ fun OtherUserScreen(
     onBackPressed: (() -> Unit),
 ) {
     val viewModel: OtherUserInfoVM = hiltViewModel<OtherUserInfoVM>()
-    viewModel.svg?.let { ShowSvgCard(it,viewModel) }
+    val context = LocalContext.current
+
+    // Show duplicate contacts bottom sheet
+    if (viewModel.showDuplicateSheet) {
+        DuplicateContactsBottomSheet(
+            existingContacts = viewModel.duplicateContacts,
+            onMergeContact = { contactId ->
+                viewModel.mergeWithExistingContact(context, contactId)
+            },
+            onAddAsNew = {
+                viewModel.saveAsNewContact(context)
+            },
+            onDismiss = {
+                viewModel.hideDuplicateSheet()
+            }
+        )
+    }
+
+    ShowSvgCard(viewModel.svg, viewModel)
 }
 
 @Composable
 fun ShowSvgCard(
-    svgXml: String,
-    viewModel: OtherUserInfoVM
+    svgXml: String?,
+    viewModel: OtherUserInfoVM,
 ) {
     var imageBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     val configuration = LocalConfiguration.current
@@ -111,7 +153,6 @@ fun ShowSvgCard(
             val imageHeight = with(density) { bitmap.height.toDp() }
 
             Card(
-//                colors = CardDefaults.cardColors(containerColor = Color.Red),
                 modifier = Modifier
                     .padding(horizontal = 85.dp)
                     .size(width = imageWidth, height = imageHeight)
@@ -133,8 +174,9 @@ fun ShowSvgCard(
                 CircularProgressIndicator()
             }
         }
+
         if (viewModel.contact != null) {
-val context= LocalContext.current
+            val context = LocalContext.current
             ExtendedFloatingActionButton(
                 onClick = {
                     viewModel.saveContact(context)
@@ -142,19 +184,228 @@ val context= LocalContext.current
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(16.dp),
-                containerColor = Color(0xFF2196F3) // Material Blue
+                containerColor = Color(0xFF2196F3)
             ) {
-                // You can use Person icon for contacts or Add icon
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("Add to Contact", color = Color.White)
                     Icon(
-                        imageVector = Icons.Default.Person, // Or Icons.Default.Add
+                        imageVector = Icons.Default.Person,
                         contentDescription = "Add Contact",
                         tint = Color.White
                     )
                 }
             }
         }
+    }
+}
 
+
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DuplicateContactsBottomSheet(
+    existingContacts: List<ContactInfo.ExistingContact>,
+    onMergeContact: (Long) -> Unit,
+    onAddAsNew: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = bottomSheetState,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header
+            Text(
+                text = "Duplicate Contacts Found",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                text = "We found existing contacts with matching phone numbers or emails. Choose to merge with an existing contact or add as new.",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // List of existing contacts
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(existingContacts) { contact ->
+                    ExistingContactItem(
+                        contact = contact,
+                        onMergeClick = { onMergeContact(contact.id) }
+                    )
+                }
+            }
+
+            // Bottom buttons
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
+                // Add as New Contact button
+                Button(
+                    onClick = onAddAsNew,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Add as New Contact",
+                        color = Color.White,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Cancel button
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(top = 8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Cancel",
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ExistingContactItem(
+    contact: ContactInfo.ExistingContact,
+    onMergeClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onMergeClick() },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Contact name and merge button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = contact.name,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Button(
+                    onClick = onMergeClick,
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = "Merge",
+                        fontSize = 12.sp,
+                        color = Color.White
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Phone numbers
+            if (contact.phoneNumbers.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Phone,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = contact.phoneNumbers.joinToString(", "),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            // Email addresses
+            if (contact.emails.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = contact.emails.joinToString(", "),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
     }
 }
