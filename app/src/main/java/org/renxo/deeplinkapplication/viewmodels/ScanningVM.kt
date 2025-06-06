@@ -1,13 +1,11 @@
 package org.renxo.deeplinkapplication.viewmodels
 
-import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.os.Environment
-import android.util.Log
 import android.view.Surface
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.ImageAnalysis
@@ -15,7 +13,6 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.core.SurfaceRequest
-import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.lifecycle.awaitInstance
 import androidx.compose.runtime.getValue
@@ -26,14 +23,20 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.internal.Contexts.getApplication
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.renxo.deeplinkapplication.models.Addresses
+import org.renxo.deeplinkapplication.models.DetailResponse
+import org.renxo.deeplinkapplication.models.Emails
+import org.renxo.deeplinkapplication.models.FieldsModel
+import org.renxo.deeplinkapplication.models.PhoneNumbers
+import org.renxo.deeplinkapplication.models.Urls
 import org.renxo.deeplinkapplication.utils.ImageAnalyzer
 import java.io.File
 import java.util.concurrent.ExecutorService
@@ -44,8 +47,8 @@ class ScanningVM : ViewModel() {
     var color by mutableStateOf(Color.Black)
         private set
     val navEvents = MutableSharedFlow<Navigate>()
-    val imageNavEvents = MutableSharedFlow<String>() // New: for image navigation
-
+    val imageNavEvents = MutableSharedFlow<DetailResponse>() // New: for image navigation
+    var showProcessing by mutableStateOf(false)
     var errorValue by mutableStateOf("")
     private val _surfaceRequest = MutableStateFlow<SurfaceRequest?>(null)
     val surfaceRequest: StateFlow<SurfaceRequest?> = _surfaceRequest
@@ -204,15 +207,65 @@ class ScanningVM : ViewModel() {
     fun confirmCapture() {
         savedImageUri?.let { uri ->
             viewModelScope.launch {
-                imageNavEvents.emit(uri)
+                sendImageToServer(File(uri)) {
+                    imageNavEvents.emit(it)
+                    resetCaptureStates()
+                }
             }
         }
+    }
+
+    private suspend fun sendImageToServer(file: File, callback: suspend (DetailResponse) -> Unit) {
+        showProcessing = true
+        delay(1000)
+        val dummyDetailResponse = DetailResponse(
+            contact_id = 101,
+            fields = FieldsModel(
+                name = "Ron Sharma",
+                company_name = "TechDev Pvt Ltd",
+                company_logo = "https://example.com/logo.png",
+                designation = "Senior Android Developer",
+                job_title = "Mobile Architect",
+                tag_line = "Crafting pixel-perfect Android experiences",
+                address = listOf(
+                    Addresses("221B Baker Street, London"),
+                    Addresses("Tech Park, Bengaluru")
+                ),
+                emails = listOf(
+                    Emails("ron@example.com"),
+                    Emails("dev.ron@techdev.com")
+                ),
+                phone_numbers = listOf(
+                    PhoneNumbers("+91-9876543210"),
+                    PhoneNumbers("+44-20-7946-0958")
+                ),
+                urls = listOf(
+                    Urls("https://ronsharma.dev"),
+                    Urls("https://github.com/ronsharma")
+                ),
+                dates = listOf(
+                    "2024-12-01",
+                    "2023-05-21"
+                ),
+                relationships = listOf(
+                    "Colleague",
+                    "Friend"
+                )
+            ),
+
+            )
+
+        callback(
+            dummyDetailResponse
+        )
     }
 
     private fun resetCaptureStates() {
         _capturedImage.value = null
         _showCapturedImage.value = false
         savedImageUri = null
+        showProcessing = false
+
     }
 
     private fun resetStates() {

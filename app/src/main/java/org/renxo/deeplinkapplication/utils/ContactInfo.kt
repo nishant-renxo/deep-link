@@ -3,68 +3,64 @@ package org.renxo.deeplinkapplication.utils
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.provider.ContactsContract
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.createBitmap
-import kotlinx.coroutines.CoroutineScope
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.renxo.deeplinkapplication.models.DetailResponse
+import org.renxo.deeplinkapplication.models.FieldsModel
 import java.io.ByteArrayOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 
-
 class ContactInfo(private val context: Context) {
 
-
-
-
     init {
-/*
-        CoroutineScope(Dispatchers.IO).launch {
-            saveContact(
-                name = "John Doe",
-                phoneticName = "Jon Do",
-                preferredName = "Johnny",
-                company = "Tech Corp",
-                jobTitle = "Developer",
-                notes = "Met at the tech conference in Mumbai. Interested in AI and mobile development.",//4
-                phoneNumbers = listOf(
-                    PhoneNumber("123-456-7890", PhoneType.WORK),
-                    PhoneNumber("098-765-4321", PhoneType.HOME)
-                ),
-                emails = listOf(
-                    Email("john@work.com", EmailType.WORK),
-                    Email("john@home.com", EmailType.HOME)
-                ),
-                websites = listOf(
-                    Website("https://johndoe.com", WebsiteType.HOME),
-                    Website("https://company.com/john", WebsiteType.WORK),
-                    Website("https://johnsblog.com", WebsiteType.BLOG),
-                    Website("https://linkedin.com/in/johndoe", WebsiteType.PROFILE),
-                    Website("https://custom-site.com", WebsiteType.CUSTOM, "Portfolio")
-                ),
-                addresses = listOf(
-                    Address("123 Work St, City, State", AddressType.HOME)
-                ),
-                dates = listOf(
-                    ImportantDate("1990-01-15", DateType.BIRTHDAY)
-                ),
-                relationships = listOf(
-                    Relationship("Jane Doe", RelationType.SPOUSE)
-                ),
-                logo = "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR8ItSgne8I1vk75zL-AO-szl1H1mXRNe2VvNwRqZNZPq9lt-M3J-p5ukbwWF_XBM7lsE28Zts0oJLA1bOkHlVx-Q"
-            )
-        }
-*/
+        /*
+                CoroutineScope(Dispatchers.IO).launch {
+                    saveContact(
+                        name = "John Doe",
+                        phoneticName = "Jon Do",
+                        preferredName = "Johnny",
+                        company = "Tech Corp",
+                        jobTitle = "Developer",
+                        notes = "Met at the tech conference in Mumbai. Interested in AI and mobile development.",//4
+                        phoneNumbers = listOf(
+                            PhoneNumber("123-456-7890", PhoneType.WORK),
+                            PhoneNumber("098-765-4321", PhoneType.HOME)
+                        ),
+                        emails = listOf(
+                            Email("john@work.com", EmailType.WORK),
+                            Email("john@home.com", EmailType.HOME)
+                        ),
+                        websites = listOf(
+                            Website("https://johndoe.com", WebsiteType.HOME),
+                            Website("https://company.com/john", WebsiteType.WORK),
+                            Website("https://johnsblog.com", WebsiteType.BLOG),
+                            Website("https://linkedin.com/in/johndoe", WebsiteType.PROFILE),
+                            Website("https://custom-site.com", WebsiteType.CUSTOM, "Portfolio")
+                        ),
+                        addresses = listOf(
+                            Address("123 Work St, City, State", AddressType.HOME)
+                        ),
+                        dates = listOf(
+                            ImportantDate("1990-01-15", DateType.BIRTHDAY)
+                        ),
+                        relationships = listOf(
+                            Relationship("Jane Doe", RelationType.SPOUSE)
+                        ),
+                        logo = "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR8ItSgne8I1vk75zL-AO-szl1H1mXRNe2VvNwRqZNZPq9lt-M3J-p5ukbwWF_XBM7lsE28Zts0oJLA1bOkHlVx-Q"
+                    )
+                }
+        */
     }
 
 
@@ -73,18 +69,18 @@ class ContactInfo(private val context: Context) {
         val id: Long,
         val name: String,
         val phoneNumbers: List<String>,
-        val emails: List<String>
+        val emails: List<String>,
     )
 
     // Result class for duplicate check
     data class DuplicateCheckResult(
         val existingContacts: List<ExistingContact>,
-        val hasMatches: Boolean
+        val hasMatches: Boolean,
     )
 
-    suspend fun checkForDuplicateContacts(
+    private suspend fun checkForDuplicateContacts(
         phoneNumbers: List<PhoneNumber>,
-        emails: List<Email>
+        emails: List<Email>,
     ): DuplicateCheckResult = withContext(Dispatchers.IO) {
         val existingContacts = mutableListOf<ExistingContact>()
         val phoneNumberStrings = phoneNumbers.map { it.number.replace(Regex("[^\\d+]"), "") }
@@ -130,7 +126,8 @@ class ContactInfo(private val context: Context) {
         )
 
         cursor?.use {
-            val contactIdIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
+            val contactIdIndex =
+                it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID)
             val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
             val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
 
@@ -140,7 +137,10 @@ class ContactInfo(private val context: Context) {
                 val number = it.getString(numberIndex) ?: ""
                 val cleanStoredNumber = number.replace(Regex("[^\\d+]"), "")
 
-                if (cleanStoredNumber.contains(cleanPhoneNumber) || cleanPhoneNumber.contains(cleanStoredNumber)) {
+                if (cleanStoredNumber.contains(cleanPhoneNumber) || cleanPhoneNumber.contains(
+                        cleanStoredNumber
+                    )
+                ) {
                     val fullContact = getFullContactInfo(contactId, name)
                     if (contacts.none { contact -> contact.id == contactId }) {
                         contacts.add(fullContact)
@@ -173,7 +173,8 @@ class ContactInfo(private val context: Context) {
         )
 
         cursor?.use {
-            val contactIdIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
+            val contactIdIndex =
+                it.getColumnIndex(ContactsContract.CommonDataKinds.Email.CONTACT_ID)
             val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Email.DISPLAY_NAME)
 
             while (it.moveToNext()) {
@@ -248,7 +249,7 @@ class ContactInfo(private val context: Context) {
         )
     }
 
-    suspend fun mergeWithExistingContact(
+    private suspend fun mergeWithExistingContact(
         existingContactId: Long,
         name: String,
         phoneticName: String? = null,
@@ -266,7 +267,11 @@ class ContactInfo(private val context: Context) {
     ) {
         // Create intent to edit existing contact
         val intent = Intent(Intent.ACTION_EDIT).apply {
-            data = Uri.withAppendedPath(ContactsContract.Contacts.CONTENT_URI, existingContactId.toString())
+            flags=FLAG_ACTIVITY_NEW_TASK
+            data = Uri.withAppendedPath(
+                ContactsContract.Contacts.CONTENT_URI,
+                existingContactId.toString()
+            )
 
             val dataList = ArrayList<ContentValues>()
 
@@ -274,9 +279,15 @@ class ContactInfo(private val context: Context) {
             // Preferred name (nickname)
             preferredName?.let {
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Nickname.NAME, it)
-                    put(ContactsContract.CommonDataKinds.Nickname.TYPE, ContactsContract.CommonDataKinds.Nickname.TYPE_DEFAULT)
+                    put(
+                        ContactsContract.CommonDataKinds.Nickname.TYPE,
+                        ContactsContract.CommonDataKinds.Nickname.TYPE_DEFAULT
+                    )
                     dataList.add(this)
                 }
             }
@@ -284,7 +295,10 @@ class ContactInfo(private val context: Context) {
             // Add phone numbers
             phoneNumbers.forEach { phoneNumber ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber.number)
                     put(ContactsContract.CommonDataKinds.Phone.TYPE, phoneNumber.type.value)
                     if (phoneNumber.type == PhoneType.CUSTOM) {
@@ -297,7 +311,10 @@ class ContactInfo(private val context: Context) {
             // Add emails
             emails.forEach { email ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Email.ADDRESS, email.address)
                     put(ContactsContract.CommonDataKinds.Email.TYPE, email.type.value)
                     if (email.type == EmailType.CUSTOM) {
@@ -310,8 +327,14 @@ class ContactInfo(private val context: Context) {
             // Add addresses
             addresses.forEach { address ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
-                    put(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS, address.fullAddress)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+                    )
+                    put(
+                        ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+                        address.fullAddress
+                    )
                     put(ContactsContract.CommonDataKinds.StructuredPostal.TYPE, address.type.value)
                     if (address.type == AddressType.CUSTOM) {
                         put(ContactsContract.CommonDataKinds.StructuredPostal.LABEL, "Custom")
@@ -323,7 +346,10 @@ class ContactInfo(private val context: Context) {
             // Add websites
             websites.forEach { website ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Website.URL, website.url)
                     put(ContactsContract.CommonDataKinds.Website.TYPE, website.type.value)
                     if (website.type == WebsiteType.CUSTOM && website.customLabel != null) {
@@ -336,7 +362,10 @@ class ContactInfo(private val context: Context) {
             // Add dates
             dates.forEach { date ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Event.START_DATE, date.date)
                     put(ContactsContract.CommonDataKinds.Event.TYPE, date.type.value)
                     if (date.type == DateType.CUSTOM && date.customLabel != null) {
@@ -349,11 +378,17 @@ class ContactInfo(private val context: Context) {
             // Add relationships
             relationships.forEach { relationship ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Relation.NAME, relationship.name)
                     put(ContactsContract.CommonDataKinds.Relation.TYPE, relationship.type.value)
                     if (relationship.type == RelationType.CUSTOM && relationship.customLabel != null) {
-                        put(ContactsContract.CommonDataKinds.Relation.LABEL, relationship.customLabel)
+                        put(
+                            ContactsContract.CommonDataKinds.Relation.LABEL,
+                            relationship.customLabel
+                        )
                     }
                     dataList.add(this)
                 }
@@ -363,7 +398,10 @@ class ContactInfo(private val context: Context) {
             logo?.let {
                 getByteArrayFromImageUrl(it)?.let { array ->
                     ContentValues().apply {
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                        put(
+                            ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
+                        )
                         put(ContactsContract.CommonDataKinds.Photo.PHOTO, array)
                         dataList.add(this)
                     }
@@ -373,12 +411,18 @@ class ContactInfo(private val context: Context) {
             // Add company and job title if provided
             company?.let {
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Organization.COMPANY, it)
                     jobTitle?.let { title ->
                         put(ContactsContract.CommonDataKinds.Organization.TITLE, title)
                     }
-                    put(ContactsContract.CommonDataKinds.Organization.TYPE, ContactsContract.CommonDataKinds.Organization.TYPE_WORK)
+                    put(
+                        ContactsContract.CommonDataKinds.Organization.TYPE,
+                        ContactsContract.CommonDataKinds.Organization.TYPE_WORK
+                    )
                     dataList.add(this)
                 }
             }
@@ -386,7 +430,10 @@ class ContactInfo(private val context: Context) {
             // Add notes if provided
             notes?.let {
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Note.NOTE, it)
                     dataList.add(this)
                 }
@@ -417,6 +464,7 @@ class ContactInfo(private val context: Context) {
         logo: String? = null,
     ) {
         val intent = Intent(ContactsContract.Intents.Insert.ACTION).apply {
+            flags=FLAG_ACTIVITY_NEW_TASK
             type = ContactsContract.RawContacts.CONTENT_TYPE
 
             // Basic information
@@ -431,9 +479,15 @@ class ContactInfo(private val context: Context) {
             // Add preferred name (nickname) if provided
             preferredName?.let {
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Nickname.NAME, it)
-                    put(ContactsContract.CommonDataKinds.Nickname.TYPE, ContactsContract.CommonDataKinds.Nickname.TYPE_DEFAULT)
+                    put(
+                        ContactsContract.CommonDataKinds.Nickname.TYPE,
+                        ContactsContract.CommonDataKinds.Nickname.TYPE_DEFAULT
+                    )
                     dataList.add(this)
                 }
             }
@@ -446,7 +500,10 @@ class ContactInfo(private val context: Context) {
                     putExtra(ContactsContract.Intents.Insert.PHONE_ISPRIMARY, true)
                 } else {
                     ContentValues().apply {
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                        put(
+                            ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+                        )
                         put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber.number)
                         put(ContactsContract.CommonDataKinds.Phone.TYPE, phoneNumber.type.value)
                         if (phoneNumber.type == PhoneType.CUSTOM) {
@@ -465,7 +522,10 @@ class ContactInfo(private val context: Context) {
                     putExtra(ContactsContract.Intents.Insert.EMAIL_ISPRIMARY, true)
                 } else {
                     ContentValues().apply {
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+                        put(
+                            ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+                        )
                         put(ContactsContract.CommonDataKinds.Email.ADDRESS, email.address)
                         put(ContactsContract.CommonDataKinds.Email.TYPE, email.type.value)
                         if (email.type == EmailType.CUSTOM) {
@@ -484,9 +544,18 @@ class ContactInfo(private val context: Context) {
                     putExtra(ContactsContract.Intents.Insert.POSTAL_ISPRIMARY, true)
                 } else {
                     ContentValues().apply {
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE)
-                        put(ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS, address.fullAddress)
-                        put(ContactsContract.CommonDataKinds.StructuredPostal.TYPE, address.type.value)
+                        put(
+                            ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
+                        )
+                        put(
+                            ContactsContract.CommonDataKinds.StructuredPostal.FORMATTED_ADDRESS,
+                            address.fullAddress
+                        )
+                        put(
+                            ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
+                            address.type.value
+                        )
                         if (address.type == AddressType.CUSTOM) {
                             put(ContactsContract.CommonDataKinds.StructuredPostal.LABEL, "Custom")
                         }
@@ -498,7 +567,10 @@ class ContactInfo(private val context: Context) {
             // Add websites
             websites.forEach { website ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Website.URL, website.url)
                     put(ContactsContract.CommonDataKinds.Website.TYPE, website.type.value)
                     if (website.type == WebsiteType.CUSTOM && website.customLabel != null) {
@@ -511,7 +583,10 @@ class ContactInfo(private val context: Context) {
             // Add dates (birthday, anniversary, custom)
             dates.forEach { date ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Event.START_DATE, date.date)
                     put(ContactsContract.CommonDataKinds.Event.TYPE, date.type.value)
                     if (date.type == DateType.CUSTOM && date.customLabel != null) {
@@ -524,11 +599,17 @@ class ContactInfo(private val context: Context) {
             // Add relationships
             relationships.forEach { relationship ->
                 ContentValues().apply {
-                    put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE)
+                    put(
+                        ContactsContract.Data.MIMETYPE,
+                        ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE
+                    )
                     put(ContactsContract.CommonDataKinds.Relation.NAME, relationship.name)
                     put(ContactsContract.CommonDataKinds.Relation.TYPE, relationship.type.value)
                     if (relationship.type == RelationType.CUSTOM && relationship.customLabel != null) {
-                        put(ContactsContract.CommonDataKinds.Relation.LABEL, relationship.customLabel)
+                        put(
+                            ContactsContract.CommonDataKinds.Relation.LABEL,
+                            relationship.customLabel
+                        )
                     }
                     dataList.add(this)
                 }
@@ -538,7 +619,10 @@ class ContactInfo(private val context: Context) {
             logo?.let {
                 getByteArrayFromImageUrl(it)?.let { array ->
                     ContentValues().apply {
-                        put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                        put(
+                            ContactsContract.Data.MIMETYPE,
+                            ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE
+                        )
                         put(ContactsContract.CommonDataKinds.Photo.PHOTO, array)
                         dataList.add(this)
                     }
@@ -585,7 +669,12 @@ class ContactInfo(private val context: Context) {
     data class Address(val fullAddress: String, val type: AddressType)
     data class Email(val address: String, val type: EmailType)
     data class ImportantDate(val date: String, val type: DateType, val customLabel: String? = null)
-    data class Relationship(val name: String, val type: RelationType, val customLabel: String? = null)
+    data class Relationship(
+        val name: String,
+        val type: RelationType,
+        val customLabel: String? = null,
+    )
+
     data class Website(val url: String, val type: WebsiteType, val customLabel: String? = null)
 
     enum class PhoneType(val value: Int) {
@@ -639,848 +728,206 @@ class ContactInfo(private val context: Context) {
         OTHER(ContactsContract.CommonDataKinds.Website.TYPE_OTHER),
         CUSTOM(ContactsContract.CommonDataKinds.Website.TYPE_CUSTOM)
     }
-}
-
-/*
-*
-    private fun Context.saveContactComprehensive(
-        // Basic information
-        name: String,
-        namePrefix: String? = null,
-        nameSuffix: String? = null,
-        firstName: String? = null,
-        middleName: String? = null,
-        lastName: String? = null,
-        phoneticName: String? = null,
-        phoneticFirstName: String? = null,
-        phoneticMiddleName: String? = null,
-        phoneticLastName: String? = null,
-        nickname: String? = null,
-        company: String? = null,
-        jobTitle: String? = null,
-        notes: String? = null,
-
-        // Phone numbers
-        primaryPhone: String? = null,
-        primaryPhoneType: Int = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
-        primaryPhoneIsPrimary: Boolean = true,
-        secondaryPhone: String? = null,
-        secondaryPhoneType: Int = ContactsContract.CommonDataKinds.Phone.TYPE_HOME,
-        tertiaryPhone: String? = null,
-        tertiaryPhoneType: Int = ContactsContract.CommonDataKinds.Phone.TYPE_WORK,
-        workPhone: String? = null,
-        homePhone: String? = null,
-        mobilePhone: String? = null,
-        faxWorkPhone: String? = null,
-        faxHomePhone: String? = null,
-        pagerPhone: String? = null,
-        otherPhone: String? = null,
-        callbackPhone: String? = null,
-        carPhone: String? = null,
-        companyMainPhone: String? = null,
-        isdnPhone: String? = null,
-        mainPhone: String? = null,
-        otherFaxPhone: String? = null,
-        radioPhone: String? = null,
-        telexPhone: String? = null,
-        ttyTddPhone: String? = null,
-        workMobilePhone: String? = null,
-        workPagerPhone: String? = null,
-        assistantPhone: String? = null,
-        mmsPhone: String? = null,
-        internetCallPhone: String? = null, // SIP address for internet calling
-
-        // Email addresses
-        primaryEmail: String? = null,
-        primaryEmailType: Int = ContactsContract.CommonDataKinds.Email.TYPE_HOME,
-        primaryEmailIsPrimary: Boolean = true,
-        secondaryEmail: String? = null,
-        secondaryEmailType: Int = ContactsContract.CommonDataKinds.Email.TYPE_WORK,
-        tertiaryEmail: String? = null,
-        tertiaryEmailType: Int = ContactsContract.CommonDataKinds.Email.TYPE_OTHER,
-        workEmail: String? = null,
-        homeEmail: String? = null,
-        otherEmail: String? = null,
-        mobileEmail: String? = null,
-
-        // Postal addresses
-        primaryPostal: String? = null,
-        primaryPostalType: Int = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_HOME,
-        primaryPostalIsPrimary: Boolean = true,
-        secondaryPostal: String? = null,
-        secondaryPostalType: Int = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_WORK,
-        tertiaryPostal: String? = null,
-        tertiaryPostalType: Int = ContactsContract.CommonDataKinds.StructuredPostal.TYPE_OTHER,
-        // Structured postal components
-        homeStreet: String? = null,
-        homeCity: String? = null,
-        homeRegion: String? = null, // State/Province
-        homePostcode: String? = null,
-        homeCountry: String? = null,
-        workStreet: String? = null,
-        workCity: String? = null,
-        workRegion: String? = null, // State/Province
-        workPostcode: String? = null,
-        workCountry: String? = null,
-
-        // IM information
-        imHandle: String? = null,
-        imProtocol: Int = ContactsContract.CommonDataKinds.Im.PROTOCOL_GOOGLE_TALK,
-        imIsPrimary: Boolean = true,
-        aimHandle: String? = null,
-        msnHandle: String? = null,
-        yahooHandle: String? = null,
-        skypeHandle: String? = null,
-        qqHandle: String? = null,
-        icqHandle: String? = null,
-        jabberHandle: String? = null,
-
-        // Website
-        websiteUrl: String? = null,
-        websiteType: Int = ContactsContract.CommonDataKinds.Website.TYPE_HOME,
-        workWebsite: String? = null,
-        homeWebsite: String? = null,
-        blogWebsite: String? = null,
-        profileWebsite: String? = null,
-        otherWebsite: String? = null,
-
-        // Events / Dates
-        birthday: String? = null, // Format: yyyy-MM-dd
-        anniversary: String? = null, // Format: yyyy-MM-dd
-        customDate1: String? = null,
-        customDate1Label: String? = null,
-        customDate2: String? = null,
-        customDate2Label: String? = null,
-
-        // Relationships
-        spouse: String? = null,
-        child: String? = null,
-        mother: String? = null,
-        father: String? = null,
-        parent: String? = null,
-        brother: String? = null,
-        sister: String? = null,
-        friend: String? = null,
-        relative: String? = null,
-        manager: String? = null,
-        assistant: String? = null,
-        referredBy: String? = null,
-        partner: String? = null,
-        domesticPartner: String? = null,
-        customRelation: String? = null,
-        customRelationLabel: String? = null,
-        customTypeList: List<Pair<String, String>> = emptyList(),
-    ) {
-        val intent = Intent(ContactsContract.Intents.Insert.ACTION).apply {
-            type = ContactsContract.RawContacts.CONTENT_TYPE
-
-            // Basic information
-            putExtra(ContactsContract.Intents.Insert.NAME, name)
-            phoneticName?.let { putExtra(ContactsContract.Intents.Insert.PHONETIC_NAME, it) }
-            company?.let { putExtra(ContactsContract.Intents.Insert.COMPANY, it) }
-            jobTitle?.let { putExtra(ContactsContract.Intents.Insert.JOB_TITLE, it) }
-            notes?.let { putExtra(ContactsContract.Intents.Insert.NOTES, it) }
-
-            // Phone numbers
-            primaryPhone?.let {
-                putExtra(ContactsContract.Intents.Insert.PHONE, it)
-                putExtra(ContactsContract.Intents.Insert.PHONE_TYPE, primaryPhoneType)
-                putExtra(ContactsContract.Intents.Insert.PHONE_ISPRIMARY, primaryPhoneIsPrimary)
-            }
-
-            secondaryPhone?.let {
-                putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE, it)
-                putExtra(ContactsContract.Intents.Insert.SECONDARY_PHONE_TYPE, secondaryPhoneType)
-            }
-
-            tertiaryPhone?.let {
-                putExtra(ContactsContract.Intents.Insert.TERTIARY_PHONE, it)
-                putExtra(ContactsContract.Intents.Insert.TERTIARY_PHONE_TYPE, tertiaryPhoneType)
-            }
-
-            // Email addresses
-            primaryEmail?.let {
-                putExtra(ContactsContract.Intents.Insert.EMAIL, it)
-                putExtra(ContactsContract.Intents.Insert.EMAIL_TYPE, primaryEmailType)
-                putExtra(ContactsContract.Intents.Insert.EMAIL_ISPRIMARY, primaryEmailIsPrimary)
-            }
-
-            secondaryEmail?.let {
-                putExtra(ContactsContract.Intents.Insert.SECONDARY_EMAIL, it)
-                putExtra(ContactsContract.Intents.Insert.SECONDARY_EMAIL_TYPE, secondaryEmailType)
-            }
-
-            tertiaryEmail?.let {
-                putExtra(ContactsContract.Intents.Insert.TERTIARY_EMAIL, it)
-                putExtra(ContactsContract.Intents.Insert.TERTIARY_EMAIL_TYPE, tertiaryEmailType)
-            }
-
-            // Postal addresses
-            primaryPostal?.let {
-                putExtra(ContactsContract.Intents.Insert.POSTAL, it)
-                putExtra(ContactsContract.Intents.Insert.POSTAL_TYPE, primaryPostalType)
-                putExtra(ContactsContract.Intents.Insert.POSTAL_ISPRIMARY, primaryPostalIsPrimary)
-            }
-
-            /*  secondaryPostal?.let {
-                  putExtra(ContactsContract.Intents.Insert.SECONDARY_POSTAL, it)
-                  putExtra(ContactsContract.Intents.Insert.SECONDARY_POSTAL_TYPE, secondaryPostalType)
-              }
-
-              tertiaryPostal?.let {
-                  putExtra(ContactsContract.Intents.Insert.TERTIARY_POSTAL, it)
-                  putExtra(ContactsContract.Intents.Insert.TERTIARY_POSTAL_TYPE, tertiaryPostalType)
-              }*/
-
-            // IM information
-            imHandle?.let {
-                putExtra(ContactsContract.Intents.Insert.IM_HANDLE, it)
-                putExtra(ContactsContract.Intents.Insert.IM_PROTOCOL, imProtocol)
-                putExtra(ContactsContract.Intents.Insert.IM_ISPRIMARY, imIsPrimary)
-            }
-
-            // Create array list for additional data that's not directly supported by intent extras
-            val dataList = ArrayList<ContentValues>()
-
-            customTypeList.forEach {
-
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Nickname .CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Nickname.NAME, it.first)
-                    put(
-                        ContactsContract.CommonDataKinds.Nickname.TYPE,
-                        ContactsContract.CommonDataKinds.Nickname.TYPE_CUSTOM
-                    )
-                    put(ContactsContract.CommonDataKinds.Nickname.LABEL, it.second)
-                    dataList.add(this)
-                }
-            }
 
 
-            // Add name components if provided
-            if (namePrefix != null || firstName != null || middleName != null ||
-                lastName != null || nameSuffix != null ||
-                phoneticFirstName != null || phoneticMiddleName != null || phoneticLastName != null
-            ) {
+    data class PendingContactData(
+        val name: String,
+        val phoneticName: String? = null,
+        val preferredName: String? = null,
+        val company: String? = null,
+        val jobTitle: String? = null,
+        val notes: String? = null,
+        val phoneNumbers: List<PhoneNumber> = emptyList(),
+        val addresses: List<Address> = emptyList(),
+        val emails: List<Email> = emptyList(),
+        val websites: List<Website> = emptyList(),
+        val dates: List<ImportantDate> = emptyList(),
+        val relationships: List<Relationship> = emptyList(),
+        val logo: String? = null,
+    )
 
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE
-                    )
+    var showDuplicateSheet by mutableStateOf(false)
+    var duplicateContacts by mutableStateOf<List<ExistingContact>>(emptyList())
+    private var pendingContactData by mutableStateOf<PendingContactData?>(null)
 
-                    // Name components
-                    namePrefix?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.PREFIX, it)
-                    }
-                    firstName?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, it)
-                    }
-                    middleName?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME, it)
-                    }
-                    lastName?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME, it)
-                    }
-                    nameSuffix?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.SUFFIX, it)
-                    }
+    suspend fun saveContact(contact: FieldsModel?) {
 
-                    // Phonetic name components
-                    phoneticFirstName?.let {
-                        put(ContactsContract.CommonDataKinds.StructuredName.PHONETIC_GIVEN_NAME, it)
-                    }
-                    phoneticMiddleName?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredName.PHONETIC_MIDDLE_NAME,
-                            it
-                        )
-                    }
-                    phoneticLastName?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredName.PHONETIC_FAMILY_NAME,
-                            it
-                        )
-                    }
+        // Extract contact data
+        val contactData = extractContactData(contact)
+        pendingContactData = contactData
 
-                    dataList.add(this)
-                }
-            }
+        // Check for duplicates
+        val duplicateResult = checkForDuplicateContacts(
+            phoneNumbers = contactData.phoneNumbers,
+            emails = contactData.emails
+        )
 
-            // Add nickname if provided
-            nickname?.let {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Nickname.NAME, it)
-                    put(
-                        ContactsContract.CommonDataKinds.Nickname.TYPE,
-                        ContactsContract.CommonDataKinds.Nickname.TYPE_DEFAULT
-                    )
-                    dataList.add(this)
-                }
-            }
-
-            // Add additional phone numbers if provided
-            val additionalPhones = mutableListOf<Pair<String?, Int>>()
-            if (workPhone != null) additionalPhones.add(
-                Pair(
-                    workPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK
-                )
-            )
-            if (homePhone != null) additionalPhones.add(
-                Pair(
-                    homePhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_HOME
-                )
-            )
-            if (mobilePhone != null) additionalPhones.add(
-                Pair(
-                    mobilePhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE
-                )
-            )
-            if (faxWorkPhone != null) additionalPhones.add(
-                Pair(
-                    faxWorkPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_WORK
-                )
-            )
-            if (faxHomePhone != null) additionalPhones.add(
-                Pair(
-                    faxHomePhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_FAX_HOME
-                )
-            )
-            if (pagerPhone != null) additionalPhones.add(
-                Pair(
-                    pagerPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_PAGER
-                )
-            )
-            if (otherPhone != null) additionalPhones.add(
-                Pair(
-                    otherPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_OTHER
-                )
-            )
-            if (callbackPhone != null) additionalPhones.add(
-                Pair(
-                    callbackPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_CALLBACK
-                )
-            )
-            if (carPhone != null) additionalPhones.add(
-                Pair(
-                    carPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_CAR
-                )
-            )
-            if (companyMainPhone != null) additionalPhones.add(
-                Pair(
-                    companyMainPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_COMPANY_MAIN
-                )
-            )
-            if (isdnPhone != null) additionalPhones.add(
-                Pair(
-                    isdnPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_ISDN
-                )
-            )
-            if (mainPhone != null) additionalPhones.add(
-                Pair(
-                    mainPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_MAIN
-                )
-            )
-            if (otherFaxPhone != null) additionalPhones.add(
-                Pair(
-                    otherFaxPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_OTHER_FAX
-                )
-            )
-            if (radioPhone != null) additionalPhones.add(
-                Pair(
-                    radioPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_RADIO
-                )
-            )
-            if (telexPhone != null) additionalPhones.add(
-                Pair(
-                    telexPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_TELEX
-                )
-            )
-            if (ttyTddPhone != null) additionalPhones.add(
-                Pair(
-                    ttyTddPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_TTY_TDD
-                )
-            )
-            if (workMobilePhone != null) additionalPhones.add(
-                Pair(
-                    workMobilePhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK_MOBILE
-                )
-            )
-            if (workPagerPhone != null) additionalPhones.add(
-                Pair(
-                    workPagerPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK_PAGER
-                )
-            )
-            if (assistantPhone != null) additionalPhones.add(
-                Pair(
-                    assistantPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_ASSISTANT
-                )
-            )
-            if (mmsPhone != null) additionalPhones.add(
-                Pair(
-                    mmsPhone,
-                    ContactsContract.CommonDataKinds.Phone.TYPE_MMS
-                )
-            )
-
-            // Add SIP address for internet calling
-            if (internetCallPhone != null) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.SipAddress.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.SipAddress.SIP_ADDRESS, internetCallPhone)
-                    put(
-                        ContactsContract.CommonDataKinds.SipAddress.TYPE,
-                        ContactsContract.CommonDataKinds.SipAddress.TYPE_HOME
-                    )
-                    dataList.add(this)
-                }
-            }
-
-            // Add additional phone numbers to the data list
-            for ((phone, type) in additionalPhones) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Phone.NUMBER, phone)
-                    put(ContactsContract.CommonDataKinds.Phone.TYPE, type)
-                    dataList.add(this)
-                }
-            }
-
-            // Add additional email addresses if provided
-            val additionalEmails = mutableListOf<Pair<String?, Int>>()
-            if (workEmail != null) additionalEmails.add(
-                Pair(
-                    workEmail,
-                    ContactsContract.CommonDataKinds.Email.TYPE_WORK
-                )
-            )
-            if (homeEmail != null) additionalEmails.add(
-                Pair(
-                    homeEmail,
-                    ContactsContract.CommonDataKinds.Email.TYPE_HOME
-                )
-            )
-            if (otherEmail != null) additionalEmails.add(
-                Pair(
-                    otherEmail,
-                    ContactsContract.CommonDataKinds.Email.TYPE_OTHER
-                )
-            )
-            if (mobileEmail != null) additionalEmails.add(
-                Pair(
-                    mobileEmail,
-                    ContactsContract.CommonDataKinds.Email.TYPE_MOBILE
-                )
-            )
-
-            // Add additional email addresses to the data list
-            for ((email, type) in additionalEmails) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
-                    put(ContactsContract.CommonDataKinds.Email.TYPE, type)
-                    dataList.add(this)
-                }
-            }
-
-            // Add structured postal addresses if components are provided
-            if (homeStreet != null || homeCity != null || homeRegion != null || homePostcode != null || homeCountry != null) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    )
-                    put(
-                        ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
-                        ContactsContract.CommonDataKinds.StructuredPostal.TYPE_HOME
-                    )
-                    homeStreet?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.STREET,
-                            it
-                        )
-                    }
-                    homeCity?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.CITY,
-                            it
-                        )
-                    }
-                    homeRegion?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.REGION,
-                            it
-                        )
-                    }
-                    homePostcode?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
-                            it
-                        )
-                    }
-                    homeCountry?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY,
-                            it
-                        )
-                    }
-                    dataList.add(this)
-                }
-            }
-
-            if (workStreet != null || workCity != null || workRegion != null || workPostcode != null || workCountry != null) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE
-                    )
-                    put(
-                        ContactsContract.CommonDataKinds.StructuredPostal.TYPE,
-                        ContactsContract.CommonDataKinds.StructuredPostal.TYPE_WORK
-                    )
-                    workStreet?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.STREET,
-                            it
-                        )
-                    }
-                    workCity?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.CITY,
-                            it
-                        )
-                    }
-                    workRegion?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.REGION,
-                            it
-                        )
-                    }
-                    workPostcode?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE,
-                            it
-                        )
-                    }
-                    workCountry?.let {
-                        put(
-                            ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY,
-                            it
-                        )
-                    }
-                    dataList.add(this)
-                }
-            }
-
-            // Add additional IM handles if provided
-            val additionalImHandles = mutableListOf<Pair<String?, Int>>()
-            if (aimHandle != null) additionalImHandles.add(
-                Pair(
-                    aimHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_AIM
-                )
-            )
-            if (msnHandle != null) additionalImHandles.add(
-                Pair(
-                    msnHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_MSN
-                )
-            )
-            if (yahooHandle != null) additionalImHandles.add(
-                Pair(
-                    yahooHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_YAHOO
-                )
-            )
-            if (skypeHandle != null) additionalImHandles.add(
-                Pair(
-                    skypeHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_SKYPE
-                )
-            )
-            if (qqHandle != null) additionalImHandles.add(
-                Pair(
-                    qqHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_QQ
-                )
-            )
-            if (icqHandle != null) additionalImHandles.add(
-                Pair(
-                    icqHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_ICQ
-                )
-            )
-            if (jabberHandle != null) additionalImHandles.add(
-                Pair(
-                    jabberHandle,
-                    ContactsContract.CommonDataKinds.Im.PROTOCOL_JABBER
-                )
-            )
-
-            // Add additional IM handles to the data list
-            for ((handle, protocol) in additionalImHandles) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Im.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Im.DATA, handle)
-                    put(ContactsContract.CommonDataKinds.Im.PROTOCOL, protocol)
-                    dataList.add(this)
-                }
-            }
-
-            // Add website data
-            val websites = mutableListOf<Pair<String?, Int>>()
-            if (websiteUrl != null) websites.add(Pair(websiteUrl, websiteType))
-            if (workWebsite != null) websites.add(
-                Pair(
-                    workWebsite,
-                    ContactsContract.CommonDataKinds.Website.TYPE_WORK
-                )
-            )
-            if (homeWebsite != null) websites.add(
-                Pair(
-                    homeWebsite,
-                    ContactsContract.CommonDataKinds.Website.TYPE_HOME
-                )
-            )
-            if (blogWebsite != null) websites.add(
-                Pair(
-                    blogWebsite,
-                    ContactsContract.CommonDataKinds.Website.TYPE_BLOG
-                )
-            )
-            if (profileWebsite != null) websites.add(
-                Pair(
-                    profileWebsite,
-                    ContactsContract.CommonDataKinds.Website.TYPE_PROFILE
-                )
-            )
-            if (otherWebsite != null) websites.add(
-                Pair(
-                    otherWebsite,
-                    ContactsContract.CommonDataKinds.Website.TYPE_OTHER
-                )
-            )
-
-            for ((url, type) in websites) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Website.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Website.URL, url)
-                    put(ContactsContract.CommonDataKinds.Website.TYPE, type)
-                    dataList.add(this)
-                }
-            }
-
-            // Add event dates (birthday, anniversary)
-            val events = mutableListOf<Triple<String?, Int, String?>>()
-            if (birthday != null) events.add(
-                Triple(
-                    birthday,
-                    ContactsContract.CommonDataKinds.Event.TYPE_BIRTHDAY,
-                    null
-                )
-            )
-            if (anniversary != null) events.add(
-                Triple(
-                    anniversary,
-                    ContactsContract.CommonDataKinds.Event.TYPE_ANNIVERSARY,
-                    null
-                )
-            )
-            if (customDate1 != null) events.add(
-                Triple(
-                    customDate1,
-                    ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM,
-                    customDate1Label
-                )
-            )
-            if (customDate2 != null) events.add(
-                Triple(
-                    customDate2,
-                    ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM,
-                    customDate2Label
-                )
-            )
-
-            for ((date, type, label) in events) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Event.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Event.START_DATE, date)
-                    put(ContactsContract.CommonDataKinds.Event.TYPE, type)
-                    if (type == ContactsContract.CommonDataKinds.Event.TYPE_CUSTOM && label != null) {
-                        put(ContactsContract.CommonDataKinds.Event.LABEL, label)
-                    }
-                    dataList.add(this)
-                }
-            }
-
-            // Add relationship data
-            val relationships = mutableListOf<Pair<String?, Int>>()
-            if (spouse != null) relationships.add(
-                Pair(
-                    spouse,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_SPOUSE
-                )
-            )
-            if (child != null) relationships.add(
-                Pair(
-                    child,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_CHILD
-                )
-            )
-            if (mother != null) relationships.add(
-                Pair(
-                    mother,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_MOTHER
-                )
-            )
-            if (father != null) relationships.add(
-                Pair(
-                    father,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_FATHER
-                )
-            )
-            if (parent != null) relationships.add(
-                Pair(
-                    parent,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_PARENT
-                )
-            )
-            if (brother != null) relationships.add(
-                Pair(
-                    brother,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_BROTHER
-                )
-            )
-            if (sister != null) relationships.add(
-                Pair(
-                    sister,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_SISTER
-                )
-            )
-            if (friend != null) relationships.add(
-                Pair(
-                    friend,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_FRIEND
-                )
-            )
-            if (relative != null) relationships.add(
-                Pair(
-                    relative,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_RELATIVE
-                )
-            )
-            if (manager != null) relationships.add(
-                Pair(
-                    manager,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_MANAGER
-                )
-            )
-            if (assistant != null) relationships.add(
-                Pair(
-                    assistant,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_ASSISTANT
-                )
-            )
-            if (referredBy != null) relationships.add(
-                Pair(
-                    referredBy,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_REFERRED_BY
-                )
-            )
-            if (partner != null) relationships.add(
-                Pair(
-                    partner,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_PARTNER
-                )
-            )
-            if (domesticPartner != null) relationships.add(
-                Pair(
-                    domesticPartner,
-                    ContactsContract.CommonDataKinds.Relation.TYPE_DOMESTIC_PARTNER
-                )
-            )
-
-            // Add custom relationship if provided
-            if (customRelation != null) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Relation.NAME, customRelation)
-                    put(
-                        ContactsContract.CommonDataKinds.Relation.TYPE,
-                        ContactsContract.CommonDataKinds.Relation.TYPE_CUSTOM
-                    )
-                    customRelationLabel?.let {
-                        put(ContactsContract.CommonDataKinds.Relation.LABEL, it)
-                    }
-                    dataList.add(this)
-                }
-            }
-
-            // Add all relationship data to the data list
-            for ((name, type) in relationships) {
-                ContentValues().apply {
-                    put(
-                        ContactsContract.Data.MIMETYPE,
-                        ContactsContract.CommonDataKinds.Relation.CONTENT_ITEM_TYPE
-                    )
-                    put(ContactsContract.CommonDataKinds.Relation.NAME, name)
-                    put(ContactsContract.CommonDataKinds.Relation.TYPE, type)
-                    dataList.add(this)
-                }
-            }
-
-            // Add all the additional data if we have any
-            if (dataList.isNotEmpty()) {
-                putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, dataList)
-            }
+        if (duplicateResult.hasMatches) {
+            // Show bottom sheet with duplicate contacts
+            duplicateContacts = duplicateResult.existingContacts
+            showDuplicateSheet = true
+        } else {
+            // No duplicates, save directly
+            saveAsNewContact()
         }
 
-        startActivity(intent)
-    }*/
+    }
+
+    suspend fun saveAsNewContact() {
+        pendingContactData?.let { data ->
+            saveContact(
+                name = data.name,
+                phoneticName = data.phoneticName,
+                preferredName = data.preferredName,
+                company = data.company,
+                jobTitle = data.jobTitle,
+                notes = data.notes,
+                phoneNumbers = data.phoneNumbers,
+                addresses = data.addresses,
+                emails = data.emails,
+                websites = data.websites,
+                dates = data.dates,
+                relationships = data.relationships,
+                logo = data.logo
+            )
+        }
+        hideDuplicateSheet()
+
+    }
+
+    suspend fun mergeWithExistingContact(existingContactId: Long) {
+        pendingContactData?.let { data ->
+            mergeWithExistingContact(
+                existingContactId = existingContactId,
+                name = data.name,
+                phoneticName = data.phoneticName,
+                preferredName = data.preferredName,
+                company = data.company,
+                jobTitle = data.jobTitle,
+                notes = data.notes,
+                phoneNumbers = data.phoneNumbers,
+                addresses = data.addresses,
+                emails = data.emails,
+                websites = data.websites,
+                dates = data.dates,
+                relationships = data.relationships,
+                logo = data.logo
+            )
+        }
+        hideDuplicateSheet()
+
+    }
+
+    fun hideDuplicateSheet() {
+        showDuplicateSheet = false
+        duplicateContacts = emptyList()
+        pendingContactData = null
+    }
+
+    private fun extractContactData(contact: FieldsModel?): PendingContactData {
+        return PendingContactData(
+            name = contact?.name ?: "Unknown",
+            phoneticName = contact?.name,
+            preferredName = contact?.name,
+            company = contact?.company_name,
+            jobTitle = contact?.job_title,
+            notes = contact?.tag_line,
+            phoneNumbers = extractPhoneNumbers(contact),
+            addresses = extractAddresses(contact),
+            emails = extractEmails(contact),
+            websites = extractWebsites(contact),
+            dates = extractDates(contact),
+            relationships = extractRelationships(contact),
+            logo = null
+        )
+    }
+
+    private fun extractPhoneNumbers(contact: FieldsModel?): List<PhoneNumber> {
+        return contact?.phone_numbers?.map { phone ->
+            PhoneNumber(
+                number = phone.phone_no ?: "",
+                type = when (phone.phone_no?.lowercase()) {
+                    "work" -> ContactInfo.PhoneType.WORK
+                    "home" -> ContactInfo.PhoneType.HOME
+                    "main" -> ContactInfo.PhoneType.MAIN
+                    else -> ContactInfo.PhoneType.HOME
+                }
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractEmails(contact: FieldsModel?): List<Email> {
+        return contact?.emails?.map { email ->
+            Email(
+                address = email?.email ?: "",
+                type = when (email?.email?.lowercase()) {
+                    "work" -> ContactInfo.EmailType.WORK
+                    "home" -> ContactInfo.EmailType.HOME
+                    else -> ContactInfo.EmailType.HOME
+                }
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractAddresses(contact: FieldsModel?): List<Address> {
+        return contact?.address?.map { address ->
+            Address(
+                fullAddress = address?.address ?: "",
+                type = when (address?.address?.lowercase()) {
+                    "work" -> ContactInfo.AddressType.WORK
+                    "home" -> ContactInfo.AddressType.HOME
+                    else -> ContactInfo.AddressType.HOME
+                }
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractWebsites(contact: FieldsModel?): List<Website> {
+        return contact?.urls?.map { website ->
+            Website(
+                url = website.url ?: "",
+                type = when (website.url?.lowercase()) {
+                    "work" -> ContactInfo.WebsiteType.WORK
+                    "home" -> ContactInfo.WebsiteType.HOME
+                    "blog" -> ContactInfo.WebsiteType.BLOG
+                    "profile" -> ContactInfo.WebsiteType.PROFILE
+                    else -> ContactInfo.WebsiteType.OTHER
+                },
+                customLabel = website.url
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractDates(contact: FieldsModel?): List<ImportantDate> {
+        return contact?.dates?.map { date ->
+            ImportantDate(
+                date = date.toString() ?: "",
+                type = when (date.toString().lowercase()) {
+                    "birthday" -> ContactInfo.DateType.BIRTHDAY
+                    "anniversary" -> ContactInfo.DateType.ANNIVERSARY
+                    else -> ContactInfo.DateType.CUSTOM
+                },
+                customLabel = date
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractRelationships(contact: FieldsModel?): List<Relationship> {
+        return contact?.relationships?.map { relationship ->
+            Relationship(
+                name = relationship ?: "",
+                type = when (relationship?.lowercase()) {
+                    "spouse" -> ContactInfo.RelationType.SPOUSE
+                    "parent" -> ContactInfo.RelationType.PARENT
+                    "child" -> ContactInfo.RelationType.CHILD
+                    "friend" -> ContactInfo.RelationType.FRIEND
+                    "assistant" -> ContactInfo.RelationType.ASSISTANT
+                    "manager" -> ContactInfo.RelationType.MANAGER
+                    else -> ContactInfo.RelationType.RELATIVE
+                },
+                customLabel = relationship
+            )
+        } ?: emptyList()
+    }
+
+}

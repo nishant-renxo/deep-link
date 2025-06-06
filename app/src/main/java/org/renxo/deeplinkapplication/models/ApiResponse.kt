@@ -38,12 +38,7 @@ data class PhoneNumbers(val phone_no: String? = null)
 @Serializable
 data class Urls(val url: String? = null)
 
-@Serializable
-data class DetailModel(
-    val action: String,
-//    val username: String,
-//    val password: String,
-)
+
 
 @Serializable
 data class TemplatesModel(

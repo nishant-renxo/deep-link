@@ -80,7 +80,7 @@ fun WebViewScreen(
 
             ExtendedFloatingActionButton(
                 onClick = {
-                    viewModel.saveContact(context)
+//                    viewModel.saveContact(context)
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)

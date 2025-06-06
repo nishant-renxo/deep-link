@@ -17,9 +17,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
-import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.MyApplication.Companion.preferenceManager
+import org.renxo.deeplinkapplication.models.DetailResponse
 import org.renxo.deeplinkapplication.screens.DeepLinkScreen
+import org.renxo.deeplinkapplication.screens.EditDataScreen
 import org.renxo.deeplinkapplication.screens.EditScreen
 import org.renxo.deeplinkapplication.screens.OtherUserScreen
 import org.renxo.deeplinkapplication.screens.RegisterScreen
@@ -30,6 +31,8 @@ import org.renxo.deeplinkapplication.screens.SplashScreen
 import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
 import org.renxo.deeplinkapplication.utils.MyAnimation
 import org.renxo.deeplinkapplication.utils.getRandomSessionId
+import org.renxo.deeplinkapplication.utils.json
+import org.renxo.deeplinkapplication.viewmodels.EditDataVM
 import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
 
 
@@ -66,19 +69,31 @@ fun AppNavGraph(
             composable<AppRoutes.ShowMyVisitingCardPage> {
                 ShowMyVisitingCardScreen()
             }
+            composable<AppRoutes.EditDataPage> {
+                val data =
+                    remember { json.decodeFromString<DetailResponse>(it.toRoute<AppRoutes.EditDataPage>().data) }
+                val viewModel = hiltViewModel<EditDataVM>()
+                LaunchedEffect(viewModel) {
+                    viewModel.setData(data.fields)
+                }
+
+                EditDataScreen(viewModel) {
+
+                }
+            }
             composable<AppRoutes.ScanningPage> {
-                ScanningScreen (navigate = { id, templateId ->
+                ScanningScreen(navigate = { id, templateId ->
                     navController.navigateTo(
                         AppRoutes.WebViewPage(id.toString(), templateId),
                         finishAll = true
                     )
-                }, navigateWithImage = {
-
+                }, navigateWithData = {
+                    navController.navigateTo(AppRoutes.EditDataPage(json.encodeToString(it)))
                 })
             }
             composable<AppRoutes.RegisterPage> {
-                val session=it.toRoute<AppRoutes.RegisterPage>().session
-                 RegisterScreen("http://192.168.168.29.199:5173",session) {
+                val session = it.toRoute<AppRoutes.RegisterPage>().session
+                RegisterScreen("http://192.168.168.29.199:5173", session) {
                     if (it) {
                         mainVM.checkNeedForFetchingDetails()
                     }

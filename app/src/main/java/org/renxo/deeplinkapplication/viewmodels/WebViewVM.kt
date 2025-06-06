@@ -67,7 +67,7 @@ class WebViewVM @Inject constructor(private val repository: ApiRepository) : Bas
 
 
     fun saveContact(context: Context) {
-        ContactInfo(context)
+//        ContactInfo(context)
     }
 
     fun saveContact3(context: Context) {

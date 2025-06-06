@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.drawable.PictureDrawable
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -63,7 +61,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import com.caverock.androidsvg.SVG
+import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.utils.ContactInfo
 import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
 
@@ -78,17 +78,25 @@ fun OtherUserScreen(
     val context = LocalContext.current
 
     // Show duplicate contacts bottom sheet
-    if (viewModel.showDuplicateSheet) {
+    if (viewModel.contactInfo.showDuplicateSheet) {
         DuplicateContactsBottomSheet(
-            existingContacts = viewModel.duplicateContacts,
+            existingContacts = viewModel.contactInfo.duplicateContacts,
             onMergeContact = { contactId ->
-                viewModel.mergeWithExistingContact(context, contactId)
+                viewModel.viewModelScope.launch {
+
+                    viewModel.contactInfo.mergeWithExistingContact(contactId)
+                }
             },
             onAddAsNew = {
-                viewModel.saveAsNewContact(context)
+                viewModel.viewModelScope.launch {
+
+                    viewModel.contactInfo.saveAsNewContact()
+                }
             },
             onDismiss = {
-                viewModel.hideDuplicateSheet()
+                viewModel.viewModelScope.launch {
+                    viewModel.contactInfo.hideDuplicateSheet()
+                }
             }
         )
     }
@@ -176,10 +184,11 @@ fun ShowSvgCard(
         }
 
         if (viewModel.contact != null) {
-            val context = LocalContext.current
             ExtendedFloatingActionButton(
                 onClick = {
-                    viewModel.saveContact(context)
+                    viewModel.viewModelScope.launch {
+                        viewModel.contactInfo.saveContact(viewModel.contact?.fields)
+                    }
                 },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -200,16 +209,13 @@ fun ShowSvgCard(
 }
 
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DuplicateContactsBottomSheet(
     existingContacts: List<ContactInfo.ExistingContact>,
     onMergeContact: (Long) -> Unit,
     onAddAsNew: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true
@@ -301,7 +307,7 @@ fun DuplicateContactsBottomSheet(
 @Composable
 fun ExistingContactItem(
     contact: ContactInfo.ExistingContact,
-    onMergeClick: () -> Unit
+    onMergeClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier

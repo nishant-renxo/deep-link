@@ -11,6 +11,8 @@ sealed class AppRoutes {
 
     @Serializable
     data object ScanningPage : NavRouts
+    @Serializable
+    data class EditDataPage(val data:String) : NavRouts
 
     @Serializable
     data class RegisterPage(val session:String) : NavRouts

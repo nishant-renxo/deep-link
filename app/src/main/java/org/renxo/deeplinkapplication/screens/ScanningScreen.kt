@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -34,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -51,6 +51,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
@@ -60,13 +62,20 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import org.renxo.deeplinkapplication.models.DetailResponse
+import org.renxo.deeplinkapplication.utils.GetAlertDialogue
 import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
 import org.renxo.deeplinkapplication.viewmodels.ScanningVM
 
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun ScanningScreen(navigate: (Int?, Int?) -> Unit, navigateWithImage: (String) -> Unit = {}) {
+fun ScanningScreen(
+    navigate: (Int?, Int?) -> Unit,
+    navigateWithData: (
+        DetailResponse,
+    ) -> Unit
+) {
     val viewModel: ScanningVM = hiltViewModel()
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
 
@@ -79,10 +88,13 @@ fun ScanningScreen(navigate: (Int?, Int?) -> Unit, navigateWithImage: (String) -
     }
 
     GetOneTimeBlock {
-        viewModel.imageNavEvents.collect { imageUri ->
-            navigateWithImage(imageUri)
+        viewModel.imageNavEvents.collect { model ->
+            navigateWithData(model)
         }
     }
+if (viewModel.showProcessing){
+    CircularProgressDialog()
+}
 
     Box(
         contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
@@ -315,6 +327,47 @@ fun CameraPreviewContent(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun CircularProgressDialog(
+    message: String = "Please wait...",
+    dismissOnBackPress: Boolean = false,
+    dismissOnClickOutside: Boolean = false
+) {
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = dismissOnBackPress,
+            dismissOnClickOutside = dismissOnClickOutside
+        )
+    ) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .widthIn(min = 100.dp, max = 200.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp),
+                    strokeWidth = 4.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
