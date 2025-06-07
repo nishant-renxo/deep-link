@@ -44,9 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -62,6 +64,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
+import org.renxo.deeplinkapplication.R
 import org.renxo.deeplinkapplication.models.DetailResponse
 import org.renxo.deeplinkapplication.utils.GetAlertDialogue
 import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
@@ -172,7 +175,7 @@ fun CameraPreviewContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (isCaptureMode) "Capture" else "Scan",
+                    text = "Scan",
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium
@@ -188,6 +191,13 @@ fun CameraPreviewContent(
                         uncheckedTrackColor = Color.Gray
                     )
                 )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Capture",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
 
@@ -202,8 +212,9 @@ fun CameraPreviewContent(
                 containerColor = Color.White,
                 contentColor = Color.Black
             ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
+                Image(
+                    colorFilter = ColorFilter.tint(color = Color.Black),
+                    painter = painterResource(R.drawable.capture),
                     contentDescription = "Capture Image",
                     modifier = Modifier.size(32.dp)
                 )

@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.MyApplication.Companion.preferenceManager
 import org.renxo.deeplinkapplication.models.DetailResponse
 import org.renxo.deeplinkapplication.screens.DeepLinkScreen
@@ -135,12 +136,12 @@ fun AppNavGraph(
                 SelectionScreen(onScanClick = {
                     navController.navigateTo(AppRoutes.ScanningPage)
                 }, onRegisterClick = {
-                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
-//                    scope.launch {
-//                        checkSessionId {
-//                            navController.navigateTo(AppRoutes.RegisterPage(it))
-//                        }
-//                    }
+//                    navController.navigateTo(AppRoutes.WebViewPage("101", 103))
+                    scope.launch {
+                        checkSessionId {
+                            navController.navigateTo(AppRoutes.RegisterPage(it))
+                        }
+                    }
                 }, onShowClick = {
                     navController.navigateTo(AppRoutes.ShowMyVisitingCardPage)
                 }, onEditClick = {
