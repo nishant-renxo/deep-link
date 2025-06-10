@@ -1,5 +1,6 @@
 package org.renxo.deeplinkapplication.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,14 +32,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewModelScope
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.models.FieldsModel
 import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
 import org.renxo.deeplinkapplication.viewmodels.EditDataVM
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun EditDataScreen(
     viewModel: EditDataVM,
@@ -119,6 +125,17 @@ fun EditDataScreen(
             Spacer(Modifier.height(24.dp)) // space before bottom bar
         }
 
+        val context = LocalContext.current
+        val contactPermissionState =
+            rememberPermissionState(android.Manifest.permission.READ_CONTACTS) {
+                if (it) {
+                    viewModel.submit()
+                } else {
+                    Toast.makeText(context, "Please Provide the Permission", Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+
         // Fixed Submit Button
         Box(
             modifier = Modifier
@@ -128,7 +145,14 @@ fun EditDataScreen(
                 .padding(16.dp)
         ) {
             Button(
-                onClick = { viewModel.submit() },
+                onClick = {
+                    if (contactPermissionState.status.isGranted) {
+                        viewModel.submit()
+                    } else {
+                        contactPermissionState.launchPermissionRequest()
+                    }
+
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -164,7 +188,6 @@ fun DuplicateSheetHandling(viewModel: EditDataVM) {
         )
     }
 }
-
 
 
 @Composable

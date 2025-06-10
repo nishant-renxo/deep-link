@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainVM @Inject constructor(private val repository: ApiRepository) :
     BaseViewModel() {
-    var authToken: String? = null
+    var authToken: String? by mutableStateOf(null)
         private set
 
     var qrCode by mutableStateOf<String?>(null)
@@ -70,6 +70,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
             call = {
                 repository.getTokenUsingSessionID(
                     GenerateTokenRequest(
+                        action="auth",
                         id,
                     )
                 )
@@ -111,7 +112,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
 
     private val detailCall by lazy { CallingHelper<ResponseModel>() }
 
-    fun getContactDetails() {
+    fun   getContactDetails() {
 
         detailCall.launchCall(
             call = {

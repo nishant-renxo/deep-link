@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.media.ExifInterface
 import android.os.Environment
+import android.util.Log
 import android.view.Surface
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.ImageAnalysis
@@ -38,6 +39,7 @@ import org.renxo.deeplinkapplication.models.FieldsModel
 import org.renxo.deeplinkapplication.models.PhoneNumbers
 import org.renxo.deeplinkapplication.models.Urls
 import org.renxo.deeplinkapplication.utils.ImageAnalyzer
+import org.renxo.deeplinkapplication.utils.json
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -254,7 +256,7 @@ class ScanningVM : ViewModel() {
             ),
 
             )
-
+        Log.e("sendImageToServer", ": ${json.encodeToString(dummyDetailResponse)}", )
         callback(
             dummyDetailResponse
         )

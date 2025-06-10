@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.networking.NetworkConnectivityManager
 import org.renxo.deeplinkapplication.utils.AppConstants
 import org.renxo.deeplinkapplication.utils.PreferenceManager
-import org.renxo.deeplinkapplication.utils.getRandomSessionId
 
 
 @HiltAndroidApp

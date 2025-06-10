@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.drawable.PictureDrawable
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +64,9 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import com.caverock.androidsvg.SVG
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.utils.ContactInfo
 import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
@@ -104,6 +108,7 @@ fun OtherUserScreen(
     ShowSvgCard(viewModel.svg, viewModel)
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ShowSvgCard(
     svgXml: String?,
@@ -154,6 +159,16 @@ fun ShowSvgCard(
             null
         }
     }
+    val context= LocalContext.current
+    val contactPermissionState = rememberPermissionState(android.Manifest.permission.READ_CONTACTS){
+        if (it){
+            viewModel.viewModelScope.launch {
+                viewModel.contactInfo.saveContact(viewModel.contact?.fields)
+            }
+        }else{
+            Toast.makeText(context, "Please Provide the Permission", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         imageBitmap?.let { bitmap ->
@@ -186,8 +201,12 @@ fun ShowSvgCard(
         if (viewModel.contact != null) {
             ExtendedFloatingActionButton(
                 onClick = {
-                    viewModel.viewModelScope.launch {
-                        viewModel.contactInfo.saveContact(viewModel.contact?.fields)
+                    if (contactPermissionState.status.isGranted) {
+                        viewModel.viewModelScope.launch {
+                            viewModel.contactInfo.saveContact(viewModel.contact?.fields)
+                        }
+                    } else {
+                        contactPermissionState.launchPermissionRequest()
                     }
                 },
                 modifier = Modifier

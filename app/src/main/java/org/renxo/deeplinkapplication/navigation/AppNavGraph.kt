@@ -94,7 +94,7 @@ fun AppNavGraph(
             }
             composable<AppRoutes.RegisterPage> {
                 val session = it.toRoute<AppRoutes.RegisterPage>().session
-                RegisterScreen("http://192.168.168.29.199:5173", session) {
+                RegisterScreen("http://192.168.29.200:5175/", session) {
                     if (it) {
                         mainVM.checkNeedForFetchingDetails()
                     }

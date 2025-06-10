@@ -81,6 +81,8 @@ abstract class BaseViewModel : ViewModel() {
                     if (connectivityManager.isConnected.value) {
                         try {
                             val result = call()
+                            Log.e("response", ": $result")
+
                             result.fold(
                                 onSuccess = {
                                     callback.onSuccess(it)

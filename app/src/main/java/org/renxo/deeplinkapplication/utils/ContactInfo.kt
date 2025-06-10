@@ -448,7 +448,7 @@ class ContactInfo(private val context: Context) {
         context.startActivity(intent)
     }
 
-    suspend fun saveContact(
+    private suspend fun saveContact(
         name: String,
         phoneticName: String? = null,
         preferredName: String? = null,

@@ -17,6 +17,7 @@ import org.renxo.deeplinkapplication.models.ResponseModel
 import org.renxo.deeplinkapplication.networking.ApiRepository
 import org.renxo.deeplinkapplication.screens.svgTect
 import org.renxo.deeplinkapplication.utils.ContactInfo
+import org.renxo.deeplinkapplication.utils.json
 import javax.inject.Inject
 
 
@@ -55,7 +56,7 @@ class OtherUserInfoVM @Inject constructor(
                 )
             )
 
-            Log.e("unKnownErrorFound", ": $id $contact")
+            Log.e("unKnownErrorFound", ": $id ${json.encodeToString(contact)}")
             svg = svgTect
         }
 

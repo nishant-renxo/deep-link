@@ -1,10 +1,8 @@
 package org.renxo.deeplinkapplication.screens
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.util.Log
 import android.view.ViewGroup
-import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -26,9 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.hilt.navigation.compose.hiltViewModel
-import org.renxo.deeplinkapplication.utils.GetOneTimeBlock
-import org.renxo.deeplinkapplication.viewmodels.WebViewVM
 
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -38,7 +33,6 @@ fun WebViewScreen(
     id: String,
     onBackPressed: (() -> Unit),
 ) {
-    val viewModel: WebViewVM = hiltViewModel<WebViewVM>()
 
     val context = LocalContext.current
     val webView = remember { WebView(context) }
@@ -76,7 +70,7 @@ fun WebViewScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
-        if (viewModel.fieldsModel != null) {
+//        if (viewModel.fieldsModel != null) {
 
             ExtendedFloatingActionButton(
                 onClick = {
@@ -96,7 +90,7 @@ fun WebViewScreen(
                         tint = Color.White
                     )
                 }
-            }
+//            }
         }
     }
 

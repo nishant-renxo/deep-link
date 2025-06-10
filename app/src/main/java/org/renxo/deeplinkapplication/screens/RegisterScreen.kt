@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.provider.Settings
 import android.util.Log
 import android.view.ViewGroup
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -17,16 +16,16 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import org.renxo.deeplinkapplication.utils.LocalMainViewModelProvider
-import org.renxo.deeplinkapplication.utils.preferenceManager
+import androidx.hilt.navigation.compose.hiltViewModel
+import org.renxo.deeplinkapplication.viewmodels.RegisterWebViewVM
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -39,8 +38,22 @@ fun RegisterScreen(
     session: String,
     onBackPressed: (Boolean) -> Unit,
 ) {
+    val viewModel: RegisterWebViewVM = hiltViewModel<RegisterWebViewVM>()
+
     val context = LocalContext.current
-    val webView = remember { WebView(context) }
+    val webView = remember { WebView(context).apply {
+        layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
+        webViewClient = WebViewClient()
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true;
+//      settings.allowFileAccess = true;
+//      settings.allowContentAccess = true;
+//      settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
+        loadUrl("$url?session_id=${session}")
+    } }
     val androidID = remember {
         Base64.encode(
             Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
@@ -66,21 +79,7 @@ fun RegisterScreen(
 
         AndroidView(
             factory = {
-                webView.apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    webViewClient = WebViewClient()
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true;
-//                    settings.allowFileAccess = true;
-//                    settings.allow ContentAccess = true;
-//                    settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW;
-                    loadUrl("$url?session_id=${session}")
-//                    loadUrl(url)
-
-                }
+                webView
             },
             update = {
                 if (it.url != url) {

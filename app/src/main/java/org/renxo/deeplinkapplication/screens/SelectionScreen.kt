@@ -47,7 +47,6 @@ fun SelectionScreen(
     onShowClick: () -> Unit,
     onRegisterClick: () -> Unit,
     onEditClick: () -> Unit,
-    viewModel: SelectionVM = viewModel(),
 ) {
     val mainVM= LocalMainViewModelProvider.current
     Column(
@@ -94,19 +93,16 @@ fun SelectionScreen(
             )
         }
 
-        val editMode = viewModel.showButton
         CustomButton(
-            icon = if (editMode) R.drawable.edit_card else R.drawable.register,
-            label = if (editMode) "Edit" else "Register",
+            icon = if (!mainVM.authToken.isNullOrEmpty()) R.drawable.edit_card else R.drawable.register,
+            label = if (!mainVM.authToken.isNullOrEmpty()) "Edit" else "Register",
             gradient = Brush.horizontalGradient(
                 listOf(Color(0xFFAB2F52), Color(0xFFBB1C54))
             ),
-            onClick = if (editMode) onEditClick else onRegisterClick
+            onClick = if (!mainVM.authToken.isNullOrEmpty()) onEditClick else onRegisterClick
         )
     }
-    GetOneTimeBlock {
-        viewModel.checkStatus()
-    }
+
 }
 
 @Composable
