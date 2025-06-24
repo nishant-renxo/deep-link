@@ -85,7 +85,7 @@ fun AppNavGraph(
             composable<AppRoutes.ScanningPage> {
                 ScanningScreen(navigate = { id, templateId ->
                     navController.navigateTo(
-                        AppRoutes.WebViewPage(id.toString(), templateId),
+                        AppRoutes.OtherUserPage(id.toString(), templateId),
                         finishAll = true
                     )
                 }, navigateWithData = {
@@ -106,13 +106,13 @@ fun AppNavGraph(
                     navController.finish()
                 }
             }
-            composable<AppRoutes.WebViewPage> {
+            composable<AppRoutes.OtherUserPage> {
 //                val vm: WebViewVM = hiltViewModel()
                 val viewModel: OtherUserInfoVM = hiltViewModel<OtherUserInfoVM>()
 
 
                 val data = remember {
-                    it.toRoute<AppRoutes.WebViewPage>().apply {
+                    it.toRoute<AppRoutes.OtherUserPage>().apply {
 //                        this.contact_id.toIntOrNull()?.let { it1 ->
 ////                            repeat(1000) {
 ////                                vm.getDetail(it1)
@@ -168,7 +168,7 @@ fun AppNavGraph(
                 val templateId = backStackEntry.toRoute<AppRoutes.DeepLinkPage>().templateId
                 DeepLinkScreen(navigate = {
                     navController.navigateTo(
-                        AppRoutes.WebViewPage(id, templateId?.toIntOrNull()),
+                        AppRoutes.OtherUserPage(id, templateId?.toIntOrNull()),
                         finishAll = true
                     )
                 }) {
