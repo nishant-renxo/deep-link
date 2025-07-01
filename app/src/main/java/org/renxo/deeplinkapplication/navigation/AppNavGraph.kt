@@ -94,7 +94,7 @@ fun AppNavGraph(
             }
             composable<AppRoutes.RegisterPage> {
                 val session = it.toRoute<AppRoutes.RegisterPage>().session
-                RegisterScreen("http://192.168.29.200:5175/", session) {
+                RegisterScreen("http://192.168.29.150:5175/", session) {
                     if (it) {
                         mainVM.checkNeedForFetchingDetails()
                     }
@@ -102,7 +102,7 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.EditPage> {
-                EditScreen("http://192.168.29.123:5173/api/android") {
+                EditScreen("http://192.168.29.150:5175/api/android") {
                     navController.finish()
                 }
             }
@@ -125,11 +125,9 @@ fun AppNavGraph(
                 }
                 OtherUserScreen(
 //                    "http://192.168.31.171:5173?contact_id=${data.contact_id}&template_id=${data.templateId ?: ""}",
-//                    "http://192.168.29.98:5173/",
-                    data.contact_id
-                ) {
-                    navController.navigateTo(AppRoutes.SelectionPage, finishAll = true)
-                }
+//                    "http://192.168.29.98:5173/"
+                    viewModel
+                )
             }
             composable<AppRoutes.SelectionPage> {
                 val scope = rememberCoroutineScope()

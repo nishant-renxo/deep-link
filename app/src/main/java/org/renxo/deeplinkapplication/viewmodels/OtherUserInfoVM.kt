@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,11 +13,16 @@ import kotlinx.coroutines.launch
 import org.renxo.deeplinkapplication.models.DetailResponse
 import org.renxo.deeplinkapplication.models.Emails
 import org.renxo.deeplinkapplication.models.FieldsModel
+import org.renxo.deeplinkapplication.models.ParamModel
 import org.renxo.deeplinkapplication.models.PhoneNumbers
 import org.renxo.deeplinkapplication.models.ResponseModel
+import org.renxo.deeplinkapplication.models.TemplateData
 import org.renxo.deeplinkapplication.networking.ApiRepository
+import org.renxo.deeplinkapplication.networking.NetworkCallback
 import org.renxo.deeplinkapplication.screens.svgTect
+import org.renxo.deeplinkapplication.utils.AppConstants
 import org.renxo.deeplinkapplication.utils.ContactInfo
+import org.renxo.deeplinkapplication.utils.getMap
 import org.renxo.deeplinkapplication.utils.json
 import javax.inject.Inject
 

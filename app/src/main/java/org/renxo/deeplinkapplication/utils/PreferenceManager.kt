@@ -82,7 +82,7 @@ class PreferenceManager(preferenceName: String) {
     }
 
     suspend fun getSessionId(): String? {
-        return "abc1234555"
+//        return "abc123456"
         return getString(AppConstants.Preferences.SESSION_ID)
     }
 

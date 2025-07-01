@@ -290,7 +290,7 @@ class ScanningVM : ViewModel() {
         cameraExecutor.shutdown()
     }
 
-    private val path = "https://ronil-renxo.github.io/deep-link?id="
+    private val path = "https://nishant-renxo.github.io/deep-link?id="
     private fun checkIfUrlCorrect(url: String) {
         if (url.contains(path)) {
             url.replace(path, "").split("&").apply {

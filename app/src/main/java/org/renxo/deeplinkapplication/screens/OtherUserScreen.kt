@@ -75,10 +75,9 @@ import org.renxo.deeplinkapplication.viewmodels.OtherUserInfoVM
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun OtherUserScreen(
-    id: String,
-    onBackPressed: (() -> Unit),
+    viewModel: OtherUserInfoVM
 ) {
-    val viewModel: OtherUserInfoVM = hiltViewModel<OtherUserInfoVM>()
+//    val viewModel: OtherUserInfoVM = hiltViewModel<OtherUserInfoVM>()
     val context = LocalContext.current
 
     // Show duplicate contacts bottom sheet

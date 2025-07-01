@@ -29,12 +29,11 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
     var qrCode by mutableStateOf<String?>(null)
     var user by mutableStateOf<User?>(null)
     var contact by mutableStateOf<Contact?>(null)
-    var sessionId :String?= ""
+    var sessionId: String? = ""
 
     init {
-        checkNeedForFetchingDetails()
         viewModelScope.launch {
-            sessionId=preferenceManager.getSessionId()
+            sessionId = preferenceManager.getSessionId()
             preferenceManager.getContact()?.let {
                 if (contact == null) {
                     contact = it
@@ -45,6 +44,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
                     qrCode = it
                 }
             }
+            checkNeedForFetchingDetails()
         }
     }
 
@@ -54,7 +54,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
         viewModelScope.launch {
             preferenceManager.getAuthToken().let {
                 if (it.isNullOrEmpty()) {
-                    preferenceManager.getSessionId()?.let { getToken(it) }
+                    preferenceManager.getSessionId()?.let { session-> getToken(session) }
                 } else {
                     getContactDetails()
                     authToken = it
@@ -64,13 +64,17 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
 
     }
 
+    private val hardcodedAuthToken =
+        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGllbnRfaWQiOiJ3ZWJhcHAiLCJkZXZpY2VfaWQiOiIiLCJleHAiOjE3NTY5NjI4NjYsImlhdCI6MTc0OTE4Njg2NiwibGFuZ3VhZ2VfaWQiOiIiLCJzdWIiOiIiLCJ3YXJlaG91c2UiOiIifQ.tLwpIDafG2k0sm8niFqaXzaxUyhpFJ3vDIGV1w_uzgVLF21rXBUhVhfTqsk1AuG1AbQi2LH0NDoOEXhb12XnTvHCH_sF1VXvniA24MXIhJJnxbF-LnCYPLsMc8equhf7Mj8REj1sGjgIDoSeUkza393SfhvmpUUlPg3XyIFG-bF2zAewnFLaDvJnxEbMGaAXh_3LUZgt0JdrkJQBs-EmZuOlHEYPbUfIn8PdPQvloyfzEuPiqnq0IcadF4-t--KUnhMUzFj_yjaOoqJupEbTnAB4Y5WRvlxNCsCi2UWOJjl3qxgtrte7WXlvebkicVeVKVYWp08DbavkOFfTpdeiIg"
     private val tokenCall by lazy { CallingHelper<GenerateTokenResponse>() }
     private fun getToken(id: String) {
+        Log.e("getContactDetails", " $id ", )
         tokenCall.launchCall(
             call = {
                 repository.getTokenUsingSessionID(
+                    hardcodedAuthToken,
                     GenerateTokenRequest(
-                        action="auth",
+                        action = "auth",
                         id,
                     )
                 )
@@ -99,7 +103,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
                 override fun onSuccess(result: GenerateTokenResponse) {
                     result.token?.let {
                         viewModelScope.launch {
-                            preferenceManager.setSessionId(it)
+                            preferenceManager.setAuthToken(it)
                             authToken = it
                             getContactDetails()
                         }
@@ -112,8 +116,7 @@ class MainVM @Inject constructor(private val repository: ApiRepository) :
 
     private val detailCall by lazy { CallingHelper<ResponseModel>() }
 
-    fun   getContactDetails() {
-
+    fun getContactDetails() {
         detailCall.launchCall(
             call = {
                 repository.getDetail(

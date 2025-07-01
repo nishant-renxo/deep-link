@@ -16,9 +16,9 @@ class ApiRepository(private val helper: ApiHelper) {
         )
 
 
-    suspend fun getTokenUsingSessionID(body: GenerateTokenRequest) =
+    suspend fun getTokenUsingSessionID(token: String?, body: GenerateTokenRequest) =
         helper.postRequest<GenerateTokenResponse, GenerateTokenRequest>(
             endPoint = "http://192.168.29.64:8085/" + ApiEndpoints.JOIN,
-            body = body
+            body = body, authToken = token
         )
 }

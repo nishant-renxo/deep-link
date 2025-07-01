@@ -82,9 +82,9 @@ fun RegisterScreen(
                 webView
             },
             update = {
-                if (it.url != url) {
-                    Log.e("RegisterScreen", ": $url", )
-                    webView.loadUrl(url)
+                val fullUrl = "$url?session_id=$session"
+                if (it.url != fullUrl) {
+                    webView.loadUrl(fullUrl)
                 }
             },
             modifier = Modifier.fillMaxSize()
