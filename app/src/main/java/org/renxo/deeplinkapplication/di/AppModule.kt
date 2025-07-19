@@ -1,6 +1,7 @@
 package org.renxo.deeplinkapplication.di
 
 import android.content.Context
+import android.util.Log
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -19,7 +20,10 @@ import kotlinx.serialization.json.Json
 import org.renxo.deeplinkapplication.networking.ApiHelper
 import org.renxo.deeplinkapplication.networking.ApiRepository
 import org.renxo.deeplinkapplication.utils.ContactInfo
+//import java.util.logging.Logger
 import javax.inject.Singleton
+import io.ktor.client.plugins.logging.Logger
+
 
 
 @Module
@@ -48,6 +52,17 @@ object AppModule {
     fun provideHttpClient(engine: HttpClientEngine): HttpClient {
         return HttpClient(engine) {
             install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        when {
+                            message.contains("REQUEST") -> Log.i("🔵 HTTP_REQUEST", message)
+                            message.contains("RESPONSE") -> Log.i("🟢 HTTP_RESPONSE", message)
+                            message.contains("BODY") -> Log.d("📦 HTTP_BODY", message)
+                            message.contains("Authorization") -> Log.w("🔑 AUTH_TOKEN", message)
+                            else -> Log.d("HTTP_LOG", message)
+                        }
+                    }
+                }
                 level = LogLevel.ALL
             }
             install(ContentNegotiation) {

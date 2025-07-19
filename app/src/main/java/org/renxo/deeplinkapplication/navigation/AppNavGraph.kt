@@ -86,7 +86,7 @@ fun AppNavGraph(
                 ScanningScreen(navigate = { id, templateId ->
                     navController.navigateTo(
                         AppRoutes.OtherUserPage(id.toString(), templateId),
-                        finishAll = true
+                        finish = true
                     )
                 }, navigateWithData = {
                     navController.navigateTo(AppRoutes.EditDataPage(json.encodeToString(it)))
@@ -94,7 +94,7 @@ fun AppNavGraph(
             }
             composable<AppRoutes.RegisterPage> {
                 val session = it.toRoute<AppRoutes.RegisterPage>().session
-                RegisterScreen("http://192.168.29.150:5175/", session) {
+                RegisterScreen("http://192.168.29.150:5173/", session) {
                     if (it) {
                         mainVM.checkNeedForFetchingDetails()
                     }
@@ -102,7 +102,7 @@ fun AppNavGraph(
                 }
             }
             composable<AppRoutes.EditPage> {
-                EditScreen("http://192.168.29.150:5175/api/android") {
+                EditScreen("http://192.168.29.150:5173/api/android") {
                     navController.finish()
                 }
             }
